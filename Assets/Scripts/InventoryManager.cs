@@ -23,9 +23,38 @@ public class InventoryManager : MonoBehaviour
         UpdateInventoryUI();
     }
 
+    public void RemoveItem(ItemSO itemSO)
+    {
+        if (items.ContainsKey(itemSO))
+        {
+            items[itemSO]--;  // Réduit la quantité de l'item
+
+            // Si la quantité atteint zéro, on supprime l'item de l'inventaire
+            if (items[itemSO] <= 0)
+            {
+                items.Remove(itemSO);
+            }
+
+            // Met à jour l'UI après modification
+            UpdateInventoryUI();
+        }
+        else
+        {
+            Debug.LogWarning("Item non trouvé dans l'inventaire : " + itemSO.itemName);
+        }
+    }
+
     public void UpdateInventoryUI()
     {
         // Ici vous mettez à jour l'UI avec les items stockés dans le dictionnaire
         inventoryUI.UpdateUI(items);
     }
+
+
+
+    public bool HasItem(ItemSO item)
+    {
+        return items.ContainsKey(item) && items[item] > 0;
+    }
+
 }

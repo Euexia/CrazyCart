@@ -29,13 +29,8 @@ public class MovementController : MonoBehaviour
 
     private void GetMovementInput()
     {
-        float moveX = 0;
-        float moveZ = 0;
-
-        if (Input.GetKey(KeyCode.Z) || Input.GetKey(KeyCode.UpArrow)) moveZ = 1;
-        if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) moveZ = -1;
-        if (Input.GetKey(KeyCode.Q) || Input.GetKey(KeyCode.LeftArrow)) moveX = -1;
-        if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) moveX = 1;
+        float moveX = Input.GetAxis("Horizontal"); 
+        float moveZ = Input.GetAxis("Vertical");   
 
         Vector3 rawInput = new Vector3(moveX, 0, moveZ).normalized;
         movementInput = IsoVectorConvert(rawInput);
@@ -53,7 +48,6 @@ public class MovementController : MonoBehaviour
         bool isWalking = movementInput != Vector3.zero;
         animator.SetBool("isWalking", isWalking);
     }
-
 
     private void MoveCharacter()
     {

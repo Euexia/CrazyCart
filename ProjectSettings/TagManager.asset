@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Dynamic
   - Item
+  - Client
   layers:
   - Default
   - TransparentFX

@@ -3,7 +3,7 @@ using UnityEngine;
 public class ItemCollector : MonoBehaviour
 {
     private InventoryManager inventoryManager;
-    private ItemData currentNearbyItem; // Stocke l'objet proche que l'on peut ramasser
+    private ItemData currentNearbyItem; 
 
     void Start()
     {
@@ -20,7 +20,6 @@ public class ItemCollector : MonoBehaviour
 
     void Update()
     {
-        // Vérifie si la touche E est pressée et qu'un objet est proche
         if (Input.GetKeyDown(KeyCode.E) && currentNearbyItem != null)
         {
             Debug.Log("Tentative de ramassage d'objet...");
@@ -34,7 +33,6 @@ public class ItemCollector : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        // Vérifie si l'objet proche est un "Item" et le stocke
         if (other.CompareTag("Item"))
         {
             ItemData itemData = other.GetComponent<ItemData>();
@@ -52,7 +50,6 @@ public class ItemCollector : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        // Réinitialise currentNearbyItem quand l'objet quitte la zone de détection
         if (other.CompareTag("Item") && currentNearbyItem != null)
         {
             Debug.Log("Objet hors de portée : " + currentNearbyItem.itemSO.itemName);
@@ -64,12 +61,11 @@ public class ItemCollector : MonoBehaviour
     {
         if (currentNearbyItem != null)
         {
-            // Ajoute l'item à l'inventaire et détruit l'objet ramassé
             Debug.Log("Ajout de l'objet " + currentNearbyItem.itemSO.itemName + " à l'inventaire.");
             inventoryManager.AddItem(currentNearbyItem.itemSO);
             Debug.Log("Objet ramassé : " + currentNearbyItem.itemSO.itemName);
             Destroy(currentNearbyItem.gameObject);
-            currentNearbyItem = null; // Réinitialise après le ramassage
+            currentNearbyItem = null; 
         }
         else
         {
