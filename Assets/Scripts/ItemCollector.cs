@@ -1,33 +1,28 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class ItemCollector : MonoBehaviour
 {
     private InventoryManager inventoryManager;
-    private ItemData currentNearbyItem; 
+    private List<ItemData> nearbyItems = new List<ItemData>(); // Liste des objets à proximité
 
     void Start()
     {
         inventoryManager = FindObjectOfType<InventoryManager>();
-        if (inventoryManager != null)
-        {
-            Debug.Log("ItemCollector prêt - Inventaire détecté.");
-        }
-        else
-        {
-            Debug.LogError("Aucun InventoryManager trouvé dans la scène !");
-        }
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E) && currentNearbyItem != null)
+        if (Input.GetKeyDown(KeyCode.E) && nearbyItems.Count > 0) // Vérifie s'il y a des objets à ramasser
         {
-            Debug.Log("Tentative de ramassage d'objet...");
-            PickupItem();
-        }
-        else if (Input.GetKeyDown(KeyCode.E) && currentNearbyItem == null)
-        {
-            Debug.LogWarning("Aucun objet à ramasser à proximité.");
+            if (inventoryManager.IsInventoryFull())
+            {
+                inventoryManager.ShowInventoryFullMessage();
+            }
+            else
+            {
+                PickupItem();
+            }
         }
     }
 
@@ -36,40 +31,33 @@ public class ItemCollector : MonoBehaviour
         if (other.CompareTag("Item"))
         {
             ItemData itemData = other.GetComponent<ItemData>();
-            if (itemData != null)
+            if (itemData != null && !nearbyItems.Contains(itemData)) // Évite les doublons
             {
-                currentNearbyItem = itemData;
-                Debug.Log("Objet à proximité détecté : " + itemData.itemSO.itemName);
-            }
-            else
-            {
-                Debug.LogError("Aucun ItemData trouvé sur l'objet : " + other.name);
+                nearbyItems.Add(itemData);
             }
         }
     }
 
     void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Item") && currentNearbyItem != null)
+        if (other.CompareTag("Item"))
         {
-            Debug.Log("Objet hors de portée : " + currentNearbyItem.itemSO.itemName);
-            currentNearbyItem = null;
+            ItemData itemData = other.GetComponent<ItemData>();
+            if (itemData != null && nearbyItems.Contains(itemData))
+            {
+                nearbyItems.Remove(itemData);
+            }
         }
     }
 
     private void PickupItem()
     {
-        if (currentNearbyItem != null)
+        if (nearbyItems.Count > 0) // Vérifie s'il y a encore des objets
         {
-            Debug.Log("Ajout de l'objet " + currentNearbyItem.itemSO.itemName + " à l'inventaire.");
-            inventoryManager.AddItem(currentNearbyItem.itemSO);
-            Debug.Log("Objet ramassé : " + currentNearbyItem.itemSO.itemName);
-            Destroy(currentNearbyItem.gameObject);
-            currentNearbyItem = null; 
-        }
-        else
-        {
-            Debug.LogWarning("Impossible de ramasser l'objet, car aucun objet n'est à proximité.");
+            ItemData itemToPickup = nearbyItems[0]; // Prend le premier objet de la liste
+            inventoryManager.AddItem(itemToPickup.itemSO);
+            Destroy(itemToPickup.gameObject); // Détruit l'objet dans la scène
+            nearbyItems.RemoveAt(0); // Supprime l'objet de la liste
         }
     }
 }

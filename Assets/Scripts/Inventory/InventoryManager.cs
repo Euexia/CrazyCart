@@ -8,9 +8,17 @@ public class InventoryManager : MonoBehaviour
     public int baseCapacity = 1;
     private ImprovementManager improvementManager;
 
+    public GameObject inventoryFullCanvas; // Canvas pour le message d'inventaire plein
+
     void Start()
     {
         improvementManager = FindObjectOfType<ImprovementManager>();
+
+        // Assurez-vous que le Canvas pour le message est désactivé au départ
+        if (inventoryFullCanvas != null)
+        {
+            inventoryFullCanvas.SetActive(false);
+        }
     }
 
     public int GetMaxCapacity()
@@ -18,19 +26,23 @@ public class InventoryManager : MonoBehaviour
         return baseCapacity + (improvementManager?.inventoryCapacityBonus ?? 0);
     }
 
-    public void AddItem(ItemSO itemSO)
+    public bool IsInventoryFull()
     {
-        // Vérifier si le nombre total d'objets dans l'inventaire dépasse la capacité maximale
         int totalItems = 0;
         foreach (var item in items.Values)
         {
             totalItems += item;
         }
+        return totalItems >= GetMaxCapacity();
+    }
 
-        if (totalItems >= GetMaxCapacity())
+    public void AddItem(ItemSO itemSO)
+    {
+        if (IsInventoryFull())
         {
-            Debug.Log("Capacité maximale atteinte.");
-            return; // Ne pas ajouter d'objets si la capacité maximale est atteinte
+            Debug.Log("Capacité maximale atteinte. Tentative d'affichage du Canvas.");
+            ShowInventoryFullMessage(); // Appel pour afficher le message
+            return; // Ne pas ajouter d'objets si l'inventaire est plein
         }
 
         if (items.ContainsKey(itemSO))
@@ -42,6 +54,7 @@ public class InventoryManager : MonoBehaviour
             items[itemSO] = 1;
         }
 
+        Debug.Log("Objet ajouté à l'inventaire : " + itemSO.itemName);
         UpdateInventoryUI();
     }
 
@@ -64,6 +77,40 @@ public class InventoryManager : MonoBehaviour
     public void UpdateInventoryUI()
     {
         inventoryUI.UpdateUI(items);
+    }
+
+    public void ShowInventoryFullMessage()
+    {
+        if (inventoryFullCanvas != null)
+        {
+            Debug.Log("Tentative d'affichage du Canvas : Inventaire plein.");
+            inventoryFullCanvas.SetActive(true); // Activer le Canvas
+            Debug.Log("Canvas activé : " + inventoryFullCanvas.activeSelf);
+
+            // Cacher le Canvas après 2 secondes
+            Invoke(nameof(HideInventoryFullMessage), 4f);
+        }
+        else
+        {
+            Debug.LogError("Le Canvas pour 'Inventaire plein' n'est pas assigné dans l'inspecteur !");
+        }
+    }
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            ShowInventoryFullMessage(); // Appeler directement pour tester
+        }
+    }
+
+
+
+    private void HideInventoryFullMessage()
+    {
+        if (inventoryFullCanvas != null)
+        {
+            inventoryFullCanvas.SetActive(false);
+        }
     }
 
     public bool HasItem(ItemSO item)

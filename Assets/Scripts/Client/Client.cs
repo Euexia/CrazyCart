@@ -1,3 +1,4 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,6 +23,7 @@ public class Client : MonoBehaviour
 
     public event System.Action OnClientCompleted;
 
+    // Start is called before the first frame update
     void Start()
     {
         improvementManager = FindObjectOfType<ImprovementManager>();
@@ -54,8 +56,10 @@ public class Client : MonoBehaviour
         }
 
         StartCoroutine(ClientTimer());
+
     }
 
+    // Update is called once per frame
     void Update()
     {
         if (BubbleInstance != null)
@@ -117,5 +121,6 @@ public class Client : MonoBehaviour
     {
         yield return new WaitForSeconds(patience);
         Destroy(gameObject);
+
     }
 }
