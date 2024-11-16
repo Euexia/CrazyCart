@@ -70,12 +70,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e5b289d99161a7b49bdb78e83e9b3478, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  demandedItem: {fileID: 0}
-  BubblePrefab: {fileID: 0}
+  demandedItem: {fileID: 11400000, guid: d2a085d1f256c524cbb1627941760ef1, type: 2}
+  BubblePrefab: {fileID: 4045878814834391189, guid: a379dced6b902de4486be3491b7686e8,
+    type: 3}
+  PatienceBarPrefab: {fileID: 8913291548217045410, guid: eb58b11178e308a47b988d1918f946c4,
+    type: 3}
   inventoryManager: {fileID: 0}
-  availableItems: []
+  availableItems:
+  - {fileID: 11400000, guid: 01ca51e29c6deb8499d1b3c2a7bcb22a, type: 2}
+  - {fileID: 11400000, guid: fd239d01087181b4683e6cec7cfd0181, type: 2}
+  - {fileID: 11400000, guid: 32366360d40d0714fb0d0f8b7b900465, type: 2}
   basePatience: 30
-  timer: 30
 --- !u!114 &1670355636723536733
 MonoBehaviour:
   m_ObjectHideFlags: 0

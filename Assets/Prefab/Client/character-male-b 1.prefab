@@ -103,8 +103,8 @@ GameObject:
   m_Component:
   - component: {fileID: 5663541938152823224}
   - component: {fileID: 3896430910402256235}
-  - component: {fileID: 7317045471595992311}
   - component: {fileID: 7662278898281537963}
+  - component: {fileID: 5625801785172401857}
   m_Layer: 0
   m_Name: character-male-b 1
   m_TagString: Untagged
@@ -142,31 +142,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0375981e572076c4f988dc886767e47b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  client: {fileID: 7317045471595992311}
+  client: {fileID: 5625801785172401857}
   playerInventory: {fileID: 0}
---- !u!114 &7317045471595992311
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5031402378567353090}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 56f1c737c91e74244b7e1a59625d677b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  demandedItem: {fileID: 11400000, guid: d2a085d1f256c524cbb1627941760ef1, type: 2}
-  BubblePrefab: {fileID: 4045878814834391189, guid: a379dced6b902de4486be3491b7686e8,
-    type: 3}
-  PatienceBarPrefab: {fileID: 3096257985531781570, guid: 538f37803e5a5724492a8d7b368071d9,
-    type: 3}
-  inventoryManager: {fileID: 0}
-  availableItems:
-  - {fileID: 11400000, guid: fd239d01087181b4683e6cec7cfd0181, type: 2}
-  - {fileID: 11400000, guid: c8480fcd1f901664693507d215f8095e, type: 2}
-  - {fileID: 11400000, guid: 6669d716314a36740b199e1be0fe337b, type: 2}
-  basePatience: 30
 --- !u!65 &7662278898281537963
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -188,6 +165,29 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5625801785172401857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5031402378567353090}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5b289d99161a7b49bdb78e83e9b3478, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  demandedItem: {fileID: 11400000, guid: d2a085d1f256c524cbb1627941760ef1, type: 2}
+  BubblePrefab: {fileID: 4045878814834391189, guid: a379dced6b902de4486be3491b7686e8,
+    type: 3}
+  PatienceBarPrefab: {fileID: 8913291548217045410, guid: eb58b11178e308a47b988d1918f946c4,
+    type: 3}
+  inventoryManager: {fileID: 0}
+  availableItems:
+  - {fileID: 11400000, guid: 01ca51e29c6deb8499d1b3c2a7bcb22a, type: 2}
+  - {fileID: 11400000, guid: c8480fcd1f901664693507d215f8095e, type: 2}
+  - {fileID: 11400000, guid: 6669d716314a36740b199e1be0fe337b, type: 2}
+  basePatience: 30
 --- !u!1 &6192380912961303791
 GameObject:
   m_ObjectHideFlags: 0
