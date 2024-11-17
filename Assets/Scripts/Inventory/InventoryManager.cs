@@ -8,13 +8,14 @@ public class InventoryManager : MonoBehaviour
     public int baseCapacity = 1;
     private ImprovementManager improvementManager;
 
-    public GameObject inventoryFullCanvas; // Canvas pour le message d'inventaire plein
+    public GameObject inventoryFullCanvas; 
+    public List<Carton> cartons = new List<Carton>(); 
 
     void Start()
     {
         improvementManager = FindObjectOfType<ImprovementManager>();
 
-        // Assurez-vous que le Canvas pour le message est désactivé au départ
+     
         if (inventoryFullCanvas != null)
         {
             inventoryFullCanvas.SetActive(false);
@@ -41,8 +42,8 @@ public class InventoryManager : MonoBehaviour
         if (IsInventoryFull())
         {
             Debug.Log("Capacité maximale atteinte. Tentative d'affichage du Canvas.");
-            ShowInventoryFullMessage(); // Appel pour afficher le message
-            return; // Ne pas ajouter d'objets si l'inventaire est plein
+            ShowInventoryFullMessage(); 
+            return;
         }
 
         if (items.ContainsKey(itemSO))
@@ -57,7 +58,6 @@ public class InventoryManager : MonoBehaviour
         Debug.Log("Objet ajouté à l'inventaire : " + itemSO.itemName);
         UpdateInventoryUI();
     }
-
 
     public void RemoveItem(ItemSO itemSO)
     {
@@ -84,10 +84,9 @@ public class InventoryManager : MonoBehaviour
         if (inventoryFullCanvas != null)
         {
             Debug.Log("Tentative d'affichage du Canvas : Inventaire plein.");
-            inventoryFullCanvas.SetActive(true); // Activer le Canvas
+            inventoryFullCanvas.SetActive(true); 
             Debug.Log("Canvas activé : " + inventoryFullCanvas.activeSelf);
 
-            // Cacher le Canvas après 2 secondes
             Invoke(nameof(HideInventoryFullMessage), 4f);
         }
         else
@@ -95,15 +94,14 @@ public class InventoryManager : MonoBehaviour
             Debug.LogError("Le Canvas pour 'Inventaire plein' n'est pas assigné dans l'inspecteur !");
         }
     }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.T))
         {
-            ShowInventoryFullMessage(); // Appeler directement pour tester
+            ShowInventoryFullMessage(); 
         }
     }
-
-
 
     private void HideInventoryFullMessage()
     {
@@ -117,4 +115,71 @@ public class InventoryManager : MonoBehaviour
     {
         return items.ContainsKey(item) && items[item] > 0;
     }
+
+    public void DiscardItem(ItemSO itemSO)
+    {
+        if (items.ContainsKey(itemSO))
+        {
+            items[itemSO]--;
+            if (items[itemSO] <= 0)
+            {
+                items.Remove(itemSO);
+            }
+
+            Debug.Log($"Objet {itemSO.itemName} jeté.");
+            UpdateInventoryUI();
+        }
+        else
+        {
+            Debug.Log("L'objet n'est pas présent dans l'inventaire.");
+        }
+    }
+
+    public ItemSO GetFirstItem()
+    {
+        foreach (var item in items.Keys)
+        {
+            return item; 
+        }
+        return null; 
+    }
+
+
+   /* public void PickupCarton(Carton carton)
+    {
+        if (carton != null)
+        {
+            cartons.Add(carton);  // Ajouter le carton à la liste
+
+            if (carton.containedItem != null && carton.containedItem.itemSO != null)
+            {
+                AddItem(carton.containedItem.itemSO);  // Ajouter l'ItemSO contenu dans le carton
+                Debug.Log($"Carton contenant {carton.containedItem.itemSO.itemName} pris.");
+            }
+            else
+            {
+                Debug.LogError("Le carton ne contient aucun item valide.");
+            }
+        }
+    }
+
+
+
+
+
+    public void AddCarton(Carton carton)
+    {
+        if (carton != null)
+        {
+            AddItem(carton.itemSO);
+            Debug.Log($"Carton {carton.gameObject.name} ajouté à l'inventaire.");
+
+            cartons.Add(carton);
+        }
+        else
+        {
+            Debug.LogError("Le carton est nul.");
+        }
+    }*/
+
 }

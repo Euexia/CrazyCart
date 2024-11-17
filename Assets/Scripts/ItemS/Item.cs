@@ -6,4 +6,6 @@ public class ItemSO : ScriptableObject
     public string itemName;
     public Sprite icon;
     public int quantity = 1;
+
+    public ItemSO itemSO;
 }

@@ -1,4 +1,3 @@
-
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
@@ -29,21 +28,23 @@ public class Client : MonoBehaviour
 
     void Start()
     {
-        // Initialiser la patience en fonction des améliorations
+        // Initialisation de la patience avec les améliorations
         improvementManager = FindObjectOfType<ImprovementManager>();
         patience = basePatience + (improvementManager?.clientPatienceBonus ?? 0f);
 
-        // Initialiser l'inventaire si nécessaire
+        // Initialisation du gestionnaire d'inventaire
         if (inventoryManager == null)
         {
             inventoryManager = FindObjectOfType<InventoryManager>();
         }
 
-        // Instancier la barre de patience
+        // Instanciation de la barre de patience
         if (PatienceBarPrefab != null)
         {
             patienceBarInstance = Instantiate(PatienceBarPrefab, transform);
-            patienceBarInstance.transform.localPosition = new Vector3(0, 2, 0);
+
+            // Abaisser la barre légèrement
+            patienceBarInstance.transform.localPosition = new Vector3(0, 1.5f, 0);
 
             patienceBarScript = patienceBarInstance.GetComponent<PatienceBar>();
             if (patienceBarScript != null)
@@ -52,11 +53,11 @@ public class Client : MonoBehaviour
             }
             else
             {
-                Debug.LogError("Le script ProgressBar n'est pas attaché au prefab PatienceBarPrefab !");
+                Debug.LogError("Le script PatienceBar n'est pas attaché au prefab PatienceBarPrefab !");
             }
         }
 
-        // Instancier la bulle de pensée
+        // Instanciation de la bulle de pensée
         if (BubblePrefab != null)
         {
             bubbleInstance = Instantiate(BubblePrefab, transform);
@@ -66,7 +67,7 @@ public class Client : MonoBehaviour
             bubbleCanvas.renderMode = RenderMode.WorldSpace;
 
             bubbleImage = bubbleInstance.GetComponentInChildren<Image>();
-            bubbleInstance.SetActive(false); // Masquer la bulle jusqu'à ce qu'une demande soit générée
+            bubbleInstance.SetActive(false); // Masquer la bulle initialement
         }
 
         // Générer une demande aléatoire
@@ -75,33 +76,31 @@ public class Client : MonoBehaviour
             GenerateRandomDemand(availableItems);
         }
 
-        // Lancer le compte à rebours de patience
+        // Démarrer le compte à rebours de patience
         StartCoroutine(ClientTimer());
     }
 
     void Update()
     {
-        // Mettre à jour la position de la bulle et de la barre de patience
+        // Mettre à jour la position de la bulle
         if (bubbleInstance != null)
         {
             bubbleInstance.transform.position = transform.position + Vector3.up * 3f;
         }
 
+        // Mettre à jour la position de la barre de patience
         if (patienceBarInstance != null)
         {
-            patienceBarInstance.transform.position = transform.position + Vector3.up * 2f;
+            patienceBarInstance.transform.position = transform.position + Vector3.up * 1.5f; // Position ajustée
         }
 
-        // Mettre à jour la barre de progression
+        // Mettre à jour la progression de la barre
         if (patienceBarScript != null)
         {
             patienceBarScript.UpdateBar((patience / basePatience) * 100);
         }
     }
 
-    /// <summary>
-    /// Génère une demande aléatoire parmi les objets disponibles.
-    /// </summary>
     public void GenerateRandomDemand(List<ItemSO> availableItems)
     {
         if (availableItems == null || availableItems.Count == 0)
@@ -115,9 +114,6 @@ public class Client : MonoBehaviour
         UpdateThoughtBubble();
     }
 
-    /// <summary>
-    /// Met à jour l'affichage de la bulle de pensée avec l'objet demandé.
-    /// </summary>
     private void UpdateThoughtBubble()
     {
         if (demandedItem != null && bubbleImage != null)
@@ -127,9 +123,6 @@ public class Client : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Vérifie si le joueur possède l'objet demandé.
-    /// </summary>
     public bool CheckIfPlayerHasItem()
     {
         if (inventoryManager == null || demandedItem == null)
@@ -142,18 +135,15 @@ public class Client : MonoBehaviour
             inventoryManager.RemoveItem(demandedItem);
             bubbleInstance.SetActive(false);
 
-            OnClientCompleted?.Invoke(); // Déclenche l'événement de satisfaction du client
+            OnClientCompleted?.Invoke();
 
-            Destroy(gameObject, 1f); // Détruit le client après un délai
+            Destroy(gameObject, 1f);
             return true;
         }
 
         return false;
     }
 
-    /// <summary>
-    /// Gère le compte à rebours de patience.
-    /// </summary>
     private IEnumerator ClientTimer()
     {
         while (patience > 0)
@@ -162,7 +152,6 @@ public class Client : MonoBehaviour
             yield return null;
         }
 
-        // Si la patience atteint 0, détruire le client
         Destroy(gameObject);
     }
 }
