@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.Progress;
 
 public class ItemCollector : MonoBehaviour
 {
@@ -11,6 +10,8 @@ public class ItemCollector : MonoBehaviour
     private Shelf nearbyShelf;
     private float interactionRange = 3f;
     private List<GameObject> shelfItems = new List<GameObject>();
+
+    private float placeCartonRange = 3f; // Distance maximale pour reposer un carton
 
     void Start()
     {
@@ -45,10 +46,14 @@ public class ItemCollector : MonoBehaviour
             }
         }
 
+        if (Input.GetKeyDown(KeyCode.F)) // Touche pour reposer le carton
+        {
+            PlaceCarton();
+        }
+
         // Toujours détecter les étagères proches
         FindNearbyShelf();
     }
-
 
     void OnTriggerEnter(Collider other)
     {
@@ -63,7 +68,7 @@ public class ItemCollector : MonoBehaviour
         else if (other.CompareTag("Carton"))
         {
             Carton carton = other.GetComponent<Carton>();
-            if (carton != null && currentCarton == null) 
+            if (carton != null && currentCarton == null)
             {
                 currentCarton = carton;
                 Debug.Log($"Carton pris: {carton.gameObject.name}");
@@ -131,14 +136,12 @@ public class ItemCollector : MonoBehaviour
         }
     }
 
-
-
     void PickupCarton()
     {
         if (currentCarton != null)
         {
-            inventoryManager.PickupCarton(currentCarton); 
-            currentCarton.gameObject.SetActive(false); 
+            inventoryManager.PickupCarton(currentCarton);
+            currentCarton.gameObject.SetActive(false);
 
             Debug.Log($"Carton {currentCarton.gameObject.name} ajouté à l'inventaire.");
         }
@@ -175,17 +178,17 @@ public class ItemCollector : MonoBehaviour
 
     public void ActivateNextItem()
     {
-    foreach (GameObject item in shelfItems)
-    {
-        if (!item.activeSelf) // Trouve un objet désactivé
+        foreach (GameObject item in shelfItems)
         {
-            item.SetActive(true); // Le réactive
-            Debug.Log($"Item {item.name} réactivé sur l'étagère.");
-            return;
+            if (!item.activeSelf) // Trouve un objet désactivé
+            {
+                item.SetActive(true); // Le réactive
+                Debug.Log($"Item {item.name} réactivé sur l'étagère.");
+                return;
+            }
         }
-    }
 
-    Debug.LogWarning("Aucun objet à réactiver sur l'étagère.");
+        Debug.LogWarning("Aucun objet à réactiver sur l'étagère.");
     }
 
     void FindNearbyShelf()
@@ -205,12 +208,39 @@ public class ItemCollector : MonoBehaviour
         }
 
         nearbyShelf = closestShelf;
-
-        if (nearbyShelf != null)
-        {
-        }
     }
 
+    void PlaceCarton()
+    {
+        if (currentCarton != null)
+        {
+            // Vérifier la distance entre le joueur et la position d'origine du carton
+            float distanceToOriginalPosition = Vector3.Distance(transform.position, currentCarton.OriginalPosition);
+            if (distanceToOriginalPosition > placeCartonRange)
+            {
+                Debug.Log("Trop loin de l'emplacement d'origine pour reposer le carton.");
+                return;
+            }
+
+            // Réinitialiser la position du carton
+            currentCarton.ResetToOriginalPosition();
+
+            // Supprimer le carton de l'inventaire (optionnel)
+            if (inventoryManager != null)
+            {
+                inventoryManager.RemoveCarton(currentCarton);
+            }
+
+            // Libérer la référence
+            currentCarton = null;
+
+            Debug.Log("Carton reposé à son emplacement d'origine.");
+        }
+        else
+        {
+            Debug.Log("Aucun carton à reposer.");
+        }
+    }
 
 
 }

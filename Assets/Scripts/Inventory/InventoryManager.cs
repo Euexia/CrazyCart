@@ -202,6 +202,30 @@ public class InventoryManager : MonoBehaviour
             Debug.LogError("Le carton est nul.");
         }
     }
+    public void RemoveCarton(Carton carton)
+    {
+        if (carton == null)
+        {
+            Debug.LogError("Tentative de supprimer un carton null.");
+            return;
+        }
+
+        if (cartons.Contains(carton))
+        {
+            cartons.Remove(carton);
+            Debug.Log($"Carton {carton.gameObject.name} supprimé de l'inventaire.");
+
+            // Supprime l'ItemSO associé au carton
+            if (carton.cartonItemSO != null)
+            {
+                RemoveItem(carton.cartonItemSO);
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"Le carton {carton.gameObject.name} n'est pas présent dans l'inventaire.");
+        }
+    }
 
     public ItemSO FindItemByName(string itemName)
     {
