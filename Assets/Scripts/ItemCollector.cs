@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using static UnityEditor.Progress;
@@ -20,73 +21,34 @@ public class ItemCollector : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.E))
         {
-            if (nearbyShelf != null && currentCarton != null)
-            {
-                RefillShelf(nearbyShelf);
-            }
-            else if (currentCarton != null)
-            {
-                PickupCarton();
-            }
-            else if (nearbyItems.Count > 0)
+            // Ramasser un carton
+            if (currentCarton == null && nearbyItems.Count > 0)
             {
                 PickupItem();
             }
-        }
-
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            DebugItemCompatibility();
+            else if (currentCarton != null && nearbyShelf == null)
+            {
+                PickupCarton();
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.R))
         {
+            // Recharger une étagère
             if (nearbyShelf != null)
             {
-                if (currentCarton != null)
-                {
-                    Debug.Log("Interaction avec l'étagère avec le carton.");
-                    RefillShelf(nearbyShelf);
-                }
-                else
-                {
-                    Debug.Log("Pas de carton équipé, recherche dans l'inventaire...");
-
-                    ItemSO itemToUse = inventoryManager.FindItemByName(nearbyShelf.acceptedItemName);
-                    if (itemToUse != null)
-                    {
-                        nearbyShelf.RefillShelf(itemToUse, 1);
-                        Debug.Log($"Étagère remplie avec {itemToUse.itemName} depuis l'inventaire.");
-                    }
-                    else
-                    {
-                        Debug.Log("Aucun item compatible trouvé dans l'inventaire.");
-                    }
-                }
+                RefillShelf(nearbyShelf);
             }
             else
             {
-                Debug.Log("Pas d'étagère à proximité.");
+                Debug.Log("Aucune étagère à proximité.");
             }
         }
 
+        // Toujours détecter les étagères proches
         FindNearbyShelf();
     }
 
-
-    void DebugItemCompatibility()
-    {
-        if (currentCarton != null && nearbyShelf != null)
-        {
-            Debug.Log($"Carton : {currentCarton.cartonItemSO.itemName}");
-            Debug.Log($"Étagère accepte : {nearbyShelf.acceptedItemName}");
-            Debug.Log($"Compatibilité : {string.Equals(currentCarton.cartonItemSO.itemName.Trim(), nearbyShelf.acceptedItemName.Trim(), System.StringComparison.OrdinalIgnoreCase)}");
-        }
-        else
-        {
-            Debug.Log("Aucun carton ou étagère détecté.");
-        }
-    }
 
     void OnTriggerEnter(Collider other)
     {
@@ -188,30 +150,31 @@ public class ItemCollector : MonoBehaviour
 
     public void RefillShelf(Shelf shelf)
     {
+        if (currentCarton == null || currentCarton.containedItem == null)
+        {
+            Debug.Log("Pas de carton ou contenu invalide.");
+            return;
+        }
+
+        if (!string.Equals(currentCarton.containedItem.itemSO.itemName, shelf.acceptedItemName, StringComparison.OrdinalIgnoreCase))
+        {
+            Debug.Log($"Le carton ne correspond pas à l'étagère ({shelf.acceptedItemName}).");
+            return;
+        }
+
         if (shelf.IsFull())
         {
             Debug.Log("L'étagère est déjà pleine.");
             return;
         }
 
-        if (currentCarton != null && currentCarton.containedItem != null)
-        {
-            string itemName = currentCarton.containedItem.itemSO.itemName;
-            Debug.Log($"Carton contient : {itemName}");
-
-            shelf.RefillShelf(currentCarton.containedItem.itemSO, 1);
-
-            // Réactiver un objet visuellement
-            shelf.ActivateNextItem();
-            Debug.Log($"L'étagère a été remplie avec {itemName}.");
-        }
-        else
-        {
-            Debug.Log("Carton ou item contenu invalide.");
-        }
+        // Ajouter l'item dans l'étagère
+        shelf.RefillShelf(currentCarton.containedItem.itemSO, 1);
+        Debug.Log($"Étagère rechargée avec {currentCarton.containedItem.itemSO.itemName}.");
     }
+
     public void ActivateNextItem()
-{
+    {
     foreach (GameObject item in shelfItems)
     {
         if (!item.activeSelf) // Trouve un objet désactivé
@@ -223,27 +186,31 @@ public class ItemCollector : MonoBehaviour
     }
 
     Debug.LogWarning("Aucun objet à réactiver sur l'étagère.");
-}
-
-
-
-
+    }
 
     void FindNearbyShelf()
     {
         Shelf[] allShelves = FindObjectsOfType<Shelf>();
-        nearbyShelf = null;
+        Shelf closestShelf = null;
+        float closestDistance = interactionRange; // Seuil pour la proximité
 
         foreach (Shelf shelf in allShelves)
         {
             float distance = Vector3.Distance(transform.position, shelf.transform.position);
-            if (distance <= interactionRange)
+            if (distance <= closestDistance)
             {
-                nearbyShelf = shelf;
-                break;
+                closestShelf = shelf;
+                closestDistance = distance;
             }
         }
+
+        nearbyShelf = closestShelf;
+
+        if (nearbyShelf != null)
+        {
+        }
     }
-   
+
+
 
 }
