@@ -9,6 +9,7 @@ public class ItemCollector : MonoBehaviour
     private Carton currentCarton;
     private Shelf nearbyShelf;
     private float interactionRange = 3f;
+    private List<GameObject> shelfItems = new List<GameObject>();
 
     void Start()
     {
@@ -169,6 +170,7 @@ public class ItemCollector : MonoBehaviour
     }
 
 
+
     void PickupCarton()
     {
         if (currentCarton != null)
@@ -208,6 +210,20 @@ public class ItemCollector : MonoBehaviour
             Debug.Log("Carton ou item contenu invalide.");
         }
     }
+    public void ActivateNextItem()
+{
+    foreach (GameObject item in shelfItems)
+    {
+        if (!item.activeSelf) // Trouve un objet désactivé
+        {
+            item.SetActive(true); // Le réactive
+            Debug.Log($"Item {item.name} réactivé sur l'étagère.");
+            return;
+        }
+    }
+
+    Debug.LogWarning("Aucun objet à réactiver sur l'étagère.");
+}
 
 
 

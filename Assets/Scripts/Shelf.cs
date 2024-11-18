@@ -36,17 +36,14 @@ public class Shelf : MonoBehaviour
     {
         foreach (GameObject item in shelfItems)
         {
-            if (!item.activeSelf) // Trouve un objet désactivé
+            if (!item.activeSelf) // Si un item est inactif, on le réactive.
             {
-                item.SetActive(true); // Le réactive
-                Debug.Log($"Item {item.name} réactivé sur l'étagère.");
+                item.SetActive(true);
                 return;
             }
         }
-
-        Debug.LogWarning("Aucun objet à réactiver sur l'étagère.");
+        Debug.LogWarning("Aucun objet à réactiver !");
     }
-
 
     public void TakeItemFromShelf()
     {
