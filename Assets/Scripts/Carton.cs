@@ -4,5 +4,8 @@ using UnityEngine;
 [System.Serializable]
 public class Carton : MonoBehaviour
 {
-    public Item containedItem;  
+    public ItemSO cartonItemSO; 
+    public ItemData containedItem; 
 }
+
+

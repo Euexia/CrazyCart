@@ -8,6 +8,7 @@ TagManager:
   - Item
   - Client
   - Carton
+  - Shelf
   layers:
   - Default
   - TransparentFX

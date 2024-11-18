@@ -1,11 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Progress;
 
 public class ItemCollector : MonoBehaviour
 {
     private InventoryManager inventoryManager;
-    private List<ItemData> nearbyItems = new List<ItemData>(); // Liste des objets à proximité
-    private Carton currentCarton; // Carton que le joueur porte actuellement
+    private List<ItemData> nearbyItems = new List<ItemData>();
+    private Carton currentCarton;
+    private Shelf nearbyShelf;
+    private float interactionRange = 3f;
 
     void Start()
     {
@@ -14,19 +17,73 @@ public class ItemCollector : MonoBehaviour
 
     void Update()
     {
-        // Vérifie si le joueur appuie sur "E"
         if (Input.GetKeyDown(KeyCode.E))
         {
-            if (currentCarton != null)
+            if (nearbyShelf != null && currentCarton != null)
             {
-                // Interagir avec le carton (ajouter le carton à l'inventaire)
+                RefillShelf(nearbyShelf);
+            }
+            else if (currentCarton != null)
+            {
                 PickupCarton();
             }
             else if (nearbyItems.Count > 0)
             {
-                // Si le joueur n'a pas de carton et qu'il y a des items proches, récupérer le premier item
                 PickupItem();
             }
+        }
+
+        if (Input.GetKeyDown(KeyCode.T))
+        {
+            DebugItemCompatibility();
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            if (nearbyShelf != null)
+            {
+                if (currentCarton != null)
+                {
+                    Debug.Log("Interaction avec l'étagère avec le carton.");
+                    RefillShelf(nearbyShelf);
+                }
+                else
+                {
+                    Debug.Log("Pas de carton équipé, recherche dans l'inventaire...");
+
+                    ItemSO itemToUse = inventoryManager.FindItemByName(nearbyShelf.acceptedItemName);
+                    if (itemToUse != null)
+                    {
+                        nearbyShelf.RefillShelf(itemToUse, 1);
+                        Debug.Log($"Étagère remplie avec {itemToUse.itemName} depuis l'inventaire.");
+                    }
+                    else
+                    {
+                        Debug.Log("Aucun item compatible trouvé dans l'inventaire.");
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log("Pas d'étagère à proximité.");
+            }
+        }
+
+        FindNearbyShelf();
+    }
+
+
+    void DebugItemCompatibility()
+    {
+        if (currentCarton != null && nearbyShelf != null)
+        {
+            Debug.Log($"Carton : {currentCarton.cartonItemSO.itemName}");
+            Debug.Log($"Étagère accepte : {nearbyShelf.acceptedItemName}");
+            Debug.Log($"Compatibilité : {string.Equals(currentCarton.cartonItemSO.itemName.Trim(), nearbyShelf.acceptedItemName.Trim(), System.StringComparison.OrdinalIgnoreCase)}");
+        }
+        else
+        {
+            Debug.Log("Aucun carton ou étagère détecté.");
         }
     }
 
@@ -35,7 +92,7 @@ public class ItemCollector : MonoBehaviour
         if (other.CompareTag("Item"))
         {
             ItemData itemData = other.GetComponent<ItemData>();
-            if (itemData != null && !nearbyItems.Contains(itemData)) // Évite les doublons
+            if (itemData != null && !nearbyItems.Contains(itemData))
             {
                 nearbyItems.Add(itemData);
             }
@@ -43,13 +100,13 @@ public class ItemCollector : MonoBehaviour
         else if (other.CompareTag("Carton"))
         {
             Carton carton = other.GetComponent<Carton>();
-            if (carton != null && currentCarton == null) // Le joueur ne porte pas déjà de carton
+            if (carton != null && currentCarton == null) 
             {
-                currentCarton = carton; // Le carton est pris par le joueur
+                currentCarton = carton;
+                Debug.Log($"Carton pris: {carton.gameObject.name}");
             }
         }
     }
-
 
     void OnTriggerExit(Collider other)
     {
@@ -67,8 +124,26 @@ public class ItemCollector : MonoBehaviour
             if (carton == currentCarton)
             {
                 currentCarton = null;
-                Debug.Log("Carton hors de portée.");
+                Debug.Log("Carton quitté.");
             }
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.CompareTag("Shelf"))
+        {
+            nearbyShelf = collision.collider.GetComponent<Shelf>();
+            Debug.Log("Étagère détectée.");
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        if (collision.collider.CompareTag("Shelf"))
+        {
+            nearbyShelf = null;
+            Debug.Log("Étagère quittée.");
         }
     }
 
@@ -76,25 +151,70 @@ public class ItemCollector : MonoBehaviour
     {
         if (nearbyItems.Count > 0)
         {
-            ItemData itemToPickup = nearbyItems[0]; // Prend le premier objet de la liste
+            ItemData itemToPickup = nearbyItems[0];
+            if (inventoryManager.IsInventoryFull())
+            {
+                Debug.Log("Inventaire plein.");
+                return;
+            }
+
             inventoryManager.AddItem(itemToPickup.itemSO);
-            Destroy(itemToPickup.gameObject); // Détruit l'objet dans la scène
-            nearbyItems.RemoveAt(0); // Supprime l'objet de la liste
+            Destroy(itemToPickup.gameObject);
+            nearbyItems.RemoveAt(0);
         }
     }
 
-    private void PickupCarton()
+    void PickupCarton()
     {
         if (currentCarton != null)
         {
-            // Ajouter le carton dans l'inventaire
-            inventoryManager.AddCarton(currentCarton); // Ajouter le carton lui-même, sans se préoccuper de son contenu
-            Debug.Log($"Carton {currentCarton.gameObject.name} ajouté à l'inventaire.");
+            inventoryManager.PickupCarton(currentCarton); 
+            currentCarton.gameObject.SetActive(false); 
 
-            // Désactive le carton dans la scène après l'avoir pris
-            currentCarton.gameObject.SetActive(false); // Si tu veux le garder dans la scène, tu peux désactiver le mesh renderer ou autre
-            currentCarton = null; // Réinitialise la référence du carton
+            Debug.Log($"Carton {currentCarton.gameObject.name} ajouté à l'inventaire.");
+        }
+        else
+        {
+            Debug.Log("Aucun carton à prendre.");
         }
     }
+
+    public void RefillShelf(Shelf shelf)
+    {
+        if (shelf.IsFull())
+        {
+            Debug.Log("L'étagère est déjà pleine.");
+            return;
+        }
+
+        ItemSO itemToUse = inventoryManager.FindItemByName(shelf.acceptedItemName);
+        if (itemToUse != null)
+        {
+            shelf.RefillShelf(itemToUse, 1);
+            Debug.Log($"L'étagère a été remplie avec {itemToUse.itemName}.");
+        }
+        else
+        {
+            Debug.Log("Impossible de trouver un carton compatible dans l'inventaire.");
+        }
+    }
+
+
+    void FindNearbyShelf()
+    {
+        Shelf[] allShelves = FindObjectsOfType<Shelf>();
+        nearbyShelf = null;
+
+        foreach (Shelf shelf in allShelves)
+        {
+            float distance = Vector3.Distance(transform.position, shelf.transform.position);
+            if (distance <= interactionRange)
+            {
+                nearbyShelf = shelf;
+                break;
+            }
+        }
+    }
+   
 
 }

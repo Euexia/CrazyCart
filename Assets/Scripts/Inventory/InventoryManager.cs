@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,14 +9,16 @@ public class InventoryManager : MonoBehaviour
     public int baseCapacity = 1;
     private ImprovementManager improvementManager;
 
-    public GameObject inventoryFullCanvas; 
-    public List<Carton> cartons = new List<Carton>(); 
+    public GameObject inventoryFullCanvas;
+    public List<Carton> cartons = new List<Carton>();
+
+    private Dictionary<Carton, bool> cartonStates = new Dictionary<Carton, bool>();
 
     void Start()
     {
         improvementManager = FindObjectOfType<ImprovementManager>();
 
-     
+
         if (inventoryFullCanvas != null)
         {
             inventoryFullCanvas.SetActive(false);
@@ -30,19 +33,22 @@ public class InventoryManager : MonoBehaviour
     public bool IsInventoryFull()
     {
         int totalItems = 0;
-        foreach (var item in items.Values)
+        foreach (var item in items)
         {
-            totalItems += item;
+            totalItems += item.Value; 
         }
-        return totalItems >= GetMaxCapacity();
+
+        Debug.Log("Total items: " + totalItems + " / Max Capacity: " + GetMaxCapacity());  
+
+        return totalItems >= GetMaxCapacity();  
     }
+
 
     public void AddItem(ItemSO itemSO)
     {
         if (IsInventoryFull())
         {
-            Debug.Log("Capacité maximale atteinte. Tentative d'affichage du Canvas.");
-            ShowInventoryFullMessage(); 
+            ShowInventoryFullMessage();
             return;
         }
 
@@ -55,9 +61,12 @@ public class InventoryManager : MonoBehaviour
             items[itemSO] = 1;
         }
 
-        Debug.Log("Objet ajouté à l'inventaire : " + itemSO.itemName);
+        Debug.Log($"Objet ajouté à l'inventaire : {itemSO.itemName}");
+
         UpdateInventoryUI();
     }
+
+
 
     public void RemoveItem(ItemSO itemSO)
     {
@@ -84,7 +93,7 @@ public class InventoryManager : MonoBehaviour
         if (inventoryFullCanvas != null)
         {
             Debug.Log("Tentative d'affichage du Canvas : Inventaire plein.");
-            inventoryFullCanvas.SetActive(true); 
+            inventoryFullCanvas.SetActive(true);
             Debug.Log("Canvas activé : " + inventoryFullCanvas.activeSelf);
 
             Invoke(nameof(HideInventoryFullMessage), 4f);
@@ -95,13 +104,7 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.T))
-        {
-            ShowInventoryFullMessage(); 
-        }
-    }
+
 
     private void HideInventoryFullMessage()
     {
@@ -139,47 +142,83 @@ public class InventoryManager : MonoBehaviour
     {
         foreach (var item in items.Keys)
         {
-            return item; 
+            return item;
         }
-        return null; 
+        return null;
     }
 
 
-   /* public void PickupCarton(Carton carton)
+    public void PickupCarton(Carton carton)
     {
         if (carton != null)
         {
-            cartons.Add(carton);  // Ajouter le carton à la liste
+            if (IsInventoryFull())
+            {
+                Debug.Log("Inventaire plein, impossible de ramasser le carton.");
+                return;
+            }
 
-            if (carton.containedItem != null && carton.containedItem.itemSO != null)
-            {
-                AddItem(carton.containedItem.itemSO);  // Ajouter l'ItemSO contenu dans le carton
-                Debug.Log($"Carton contenant {carton.containedItem.itemSO.itemName} pris.");
-            }
-            else
-            {
-                Debug.LogError("Le carton ne contient aucun item valide.");
-            }
+            AddItem(carton.cartonItemSO);
+
+            carton.gameObject.SetActive(false);
+            Debug.Log($"Carton {carton.gameObject.name} ajouté à l'inventaire.");
+        }
+        else
+        {
+            Debug.LogError("Tentative de ramasser un carton null.");
         }
     }
 
 
 
+
+    public Carton GetCartonFromInventory(string itemName)
+    {
+        foreach (var carton in cartons)
+        {
+            if (carton.cartonItemSO != null && carton.cartonItemSO.itemName == itemName)
+            {
+                return carton; 
+            }
+        }
+        return null; 
+    }
 
 
     public void AddCarton(Carton carton)
     {
         if (carton != null)
         {
-            AddItem(carton.itemSO);
-            Debug.Log($"Carton {carton.gameObject.name} ajouté à l'inventaire.");
+            if (carton.cartonItemSO != null)
+            {
+                AddItem(carton.cartonItemSO);
+                Debug.Log($"Carton {carton.gameObject.name} ajouté en tant qu'item {carton.cartonItemSO.itemName} dans l'inventaire.");
 
-            cartons.Add(carton);
+                cartons.Add(carton);
+            }
+            else
+            {
+                Debug.LogError($"Le carton {carton.gameObject.name} n'a pas de ItemSO associé.");
+            }
         }
         else
         {
             Debug.LogError("Le carton est nul.");
         }
-    }*/
+    }
+    public ItemSO FindItemByName(string itemName)
+    {
+        foreach (var item in items.Keys)
+        {
+            Debug.Log($"Item dans l'inventaire : {item.itemName}");
+            if (item.itemName == itemName)
+            {
+                return item;
+            }
+        }
+        Debug.Log($"Aucun item avec le nom '{itemName}' trouvé dans l'inventaire.");
+        return null;
+    }
+
 
 }
