@@ -6,6 +6,8 @@ public class Carton : MonoBehaviour
 {
     public ItemSO cartonItemSO; 
     public ItemData containedItem; 
+
+
 }
 
 

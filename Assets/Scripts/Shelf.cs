@@ -1,11 +1,14 @@
-using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Shelf : MonoBehaviour
 {
-    public string acceptedItemName; 
+    public string acceptedItemName;
     public int maxCapacity = 10;
     private int currentCapacity = 0;
+
+    // Liste des items visibles sur l'étagère
+    public List<GameObject> shelfItems = new List<GameObject>();
 
     public bool IsFull()
     {
@@ -14,13 +17,14 @@ public class Shelf : MonoBehaviour
 
     public void RefillShelf(ItemSO item, int quantity)
     {
-        Debug.Log($"Tentative de remplir l'étagère avec : {item?.itemName ?? "null"} (quantité : {quantity})");
-        Debug.Log($"Nom accepté par l'étagère : {acceptedItemName}");
-
-        if (item != null && string.Equals(item.itemName, acceptedItemName, StringComparison.OrdinalIgnoreCase))
+        if (item != null && item.itemName == acceptedItemName)
         {
-            currentCapacity += quantity;
-            Debug.Log($"L'étagère a été remplie avec {quantity} {item.itemName}(s).");
+            for (int i = 0; i < quantity; i++)
+            {
+                ActivateNextItem(); // Réactive un item existant.
+                currentCapacity++;
+                Debug.Log($"Ajouté : {item.itemName}");
+            }
         }
         else
         {
@@ -28,4 +32,33 @@ public class Shelf : MonoBehaviour
         }
     }
 
+    public void ActivateNextItem()
+    {
+        foreach (GameObject item in shelfItems)
+        {
+            if (!item.activeSelf) // Trouve un objet désactivé
+            {
+                item.SetActive(true); // Le réactive
+                Debug.Log($"Item {item.name} réactivé sur l'étagère.");
+                return;
+            }
+        }
+
+        Debug.LogWarning("Aucun objet à réactiver sur l'étagère.");
+    }
+
+
+    public void TakeItemFromShelf()
+    {
+        for (int i = shelfItems.Count - 1; i >= 0; i--)
+        {
+            if (shelfItems[i].activeSelf) // On désactive le premier item actif trouvé.
+            {
+                shelfItems[i].SetActive(false);
+                currentCapacity--;
+                return;
+            }
+        }
+        Debug.LogWarning("Aucun objet disponible pour être pris !");
+    }
 }

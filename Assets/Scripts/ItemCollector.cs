@@ -159,10 +159,15 @@ public class ItemCollector : MonoBehaviour
             }
 
             inventoryManager.AddItem(itemToPickup.itemSO);
-            Destroy(itemToPickup.gameObject);
+
+            // Désactiver au lieu de détruire
+            itemToPickup.gameObject.SetActive(false);
             nearbyItems.RemoveAt(0);
+
+            Debug.Log($"Item {itemToPickup.itemSO.itemName} ramassé.");
         }
     }
+
 
     void PickupCarton()
     {
@@ -187,17 +192,25 @@ public class ItemCollector : MonoBehaviour
             return;
         }
 
-        ItemSO itemToUse = inventoryManager.FindItemByName(shelf.acceptedItemName);
-        if (itemToUse != null)
+        if (currentCarton != null && currentCarton.containedItem != null)
         {
-            shelf.RefillShelf(itemToUse, 1);
-            Debug.Log($"L'étagère a été remplie avec {itemToUse.itemName}.");
+            string itemName = currentCarton.containedItem.itemSO.itemName;
+            Debug.Log($"Carton contient : {itemName}");
+
+            shelf.RefillShelf(currentCarton.containedItem.itemSO, 1);
+
+            // Réactiver un objet visuellement
+            shelf.ActivateNextItem();
+            Debug.Log($"L'étagère a été remplie avec {itemName}.");
         }
         else
         {
-            Debug.Log("Impossible de trouver un carton compatible dans l'inventaire.");
+            Debug.Log("Carton ou item contenu invalide.");
         }
     }
+
+
+
 
 
     void FindNearbyShelf()

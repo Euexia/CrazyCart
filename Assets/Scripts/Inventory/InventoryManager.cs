@@ -16,33 +16,38 @@ public class InventoryManager : MonoBehaviour
 
     void Start()
     {
-        improvementManager = FindObjectOfType<ImprovementManager>();
-
-
         if (inventoryFullCanvas != null)
         {
             inventoryFullCanvas.SetActive(false);
         }
     }
-
+    void Awake()
+    {
+        if (improvementManager == null)
+        {
+            improvementManager = FindObjectOfType<ImprovementManager>();
+            if (improvementManager == null)
+            {
+                Debug.LogError("ImprovementManager non trouvé dans la scène !");
+            }
+        }
+    }
     public int GetMaxCapacity()
     {
         return baseCapacity + (improvementManager?.inventoryCapacityBonus ?? 0);
     }
 
+
     public bool IsInventoryFull()
     {
         int totalItems = 0;
-        foreach (var item in items)
+        foreach (var item in items.Values)
         {
-            totalItems += item.Value; 
+            totalItems += item;
         }
-
-        Debug.Log("Total items: " + totalItems + " / Max Capacity: " + GetMaxCapacity());  
-
-        return totalItems >= GetMaxCapacity();  
+        return totalItems >= GetMaxCapacity();
     }
-
+    
 
     public void AddItem(ItemSO itemSO)
     {
@@ -65,8 +70,6 @@ public class InventoryManager : MonoBehaviour
 
         UpdateInventoryUI();
     }
-
-
 
     public void RemoveItem(ItemSO itemSO)
     {
@@ -103,8 +106,6 @@ public class InventoryManager : MonoBehaviour
             Debug.LogError("Le Canvas pour 'Inventaire plein' n'est pas assigné dans l'inspecteur !");
         }
     }
-
-
 
     private void HideInventoryFullMessage()
     {
@@ -147,7 +148,6 @@ public class InventoryManager : MonoBehaviour
         return null;
     }
 
-
     public void PickupCarton(Carton carton)
     {
         if (carton != null)
@@ -169,21 +169,17 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
-
-
-
     public Carton GetCartonFromInventory(string itemName)
     {
         foreach (var carton in cartons)
         {
             if (carton.cartonItemSO != null && carton.cartonItemSO.itemName == itemName)
             {
-                return carton; 
+                return carton;
             }
         }
-        return null; 
+        return null;
     }
-
 
     public void AddCarton(Carton carton)
     {
@@ -206,6 +202,7 @@ public class InventoryManager : MonoBehaviour
             Debug.LogError("Le carton est nul.");
         }
     }
+
     public ItemSO FindItemByName(string itemName)
     {
         foreach (var item in items.Keys)
@@ -219,6 +216,4 @@ public class InventoryManager : MonoBehaviour
         Debug.Log($"Aucun item avec le nom '{itemName}' trouvé dans l'inventaire.");
         return null;
     }
-
-
 }

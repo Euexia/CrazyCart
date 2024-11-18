@@ -120,15 +120,18 @@ public class ImprovementManager : MonoBehaviour
         if (improvementPoints > 0)
         {
             inventoryCapacityBonus += amount;
+            Debug.Log($"Capacité d'inventaire améliorée de {amount}. Bonus actuel : {inventoryCapacityBonus}");
             improvementPoints--;
             UpdateImprovementPointsText();
             return true;
         }
         else
         {
+            Debug.Log("Pas assez de points d'amélioration pour augmenter la capacité.");
             return false;
         }
     }
+
 
     public bool UpgradeClientPatience(float amount)
     {
