@@ -215,7 +215,6 @@ public class InventoryManager : MonoBehaviour
             cartons.Remove(carton);
             Debug.Log($"Carton {carton.gameObject.name} supprimé de l'inventaire.");
 
-            // Supprime l'ItemSO associé au carton
             if (carton.cartonItemSO != null)
             {
                 RemoveItem(carton.cartonItemSO);

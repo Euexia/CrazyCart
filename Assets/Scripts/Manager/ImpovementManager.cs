@@ -24,6 +24,8 @@ public class ImprovementManager : MonoBehaviour
     private int inventoryUpgradePoints = 0;
     private int patienceUpgradePoints = 0;
 
+    public GameObject particleEffectPrefab;
+    public GameObject player;
 
     void Awake()
     {
@@ -79,6 +81,8 @@ public class ImprovementManager : MonoBehaviour
         {
             moveSpeedUpgradePoints++;
             UpdateImprovementPointsText();
+            PlayParticleEffect();
+
         }
     }
 
@@ -88,6 +92,8 @@ public class ImprovementManager : MonoBehaviour
         {
             inventoryUpgradePoints++;
             UpdateImprovementPointsText();
+            PlayParticleEffect();
+
         }
     }
 
@@ -97,6 +103,8 @@ public class ImprovementManager : MonoBehaviour
         {
             patienceUpgradePoints++;
             UpdateImprovementPointsText();
+            PlayParticleEffect();
+
         }
     }
 
@@ -147,4 +155,25 @@ public class ImprovementManager : MonoBehaviour
             return false;
         }
     }
+
+    private void PlayParticleEffect()
+    {
+        if (particleEffectPrefab != null && player != null)
+        {
+            GameObject particleEffect = Instantiate(particleEffectPrefab, player.transform.position, Quaternion.identity);
+
+            particleEffect.transform.localScale *= 3f; 
+
+            particleEffect.transform.SetParent(player.transform);
+
+            Destroy(particleEffect, 2f);
+        }
+        else
+        {
+            Debug.LogWarning("Le prefab de particules ou le joueur n'est pas assigné.");
+        }
+    }
+
+
+
 }

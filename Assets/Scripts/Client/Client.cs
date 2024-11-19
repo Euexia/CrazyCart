@@ -2,48 +2,57 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.AI;
 
 public class Client : MonoBehaviour
 {
-    public ItemSO demandedItem; // L'objet demandé par le client
-    public GameObject BubblePrefab; // Prefab pour afficher une bulle de pensée
-    public GameObject PatienceBarPrefab; // Prefab pour afficher la barre de patience
+    public ItemSO demandedItem; 
+    public GameObject BubblePrefab;
+    public GameObject PatienceBarPrefab;
 
     private GameObject bubbleInstance;
     private GameObject patienceBarInstance;
 
     private Image bubbleImage;
-    private PatienceBar patienceBarScript; // Script pour la gestion de la barre de progression
+    private PatienceBar patienceBarScript;
 
-    public InventoryManager inventoryManager; // Référence au gestionnaire d'inventaire
-    public List<ItemSO> availableItems; // Liste des objets disponibles pour les demandes du client
+    public InventoryManager inventoryManager; 
+    public List<ItemSO> availableItems;
 
     private Canvas bubbleCanvas;
     private ImprovementManager improvementManager;
 
-    public float basePatience = 30f; // Temps de patience initial
-    private float patience; // Temps restant de patience
+    public float basePatience = 30f; 
+    private float patience; 
 
-    public event System.Action OnClientCompleted; // Événement déclenché lorsque le client est satisfait
+    public event System.Action OnClientCompleted; 
+
+    public List<Transform> destinations;  
+    private NavMeshAgent agent;
+    private int currentDestinationIndex = 0;
+
+    void Awake()
+    {
+        if (!TryGetComponent(out agent))
+        {
+            agent = gameObject.AddComponent<NavMeshAgent>();
+        }
+    }
 
     void Start()
     {
-        // Initialisation de la patience avec les améliorations
         improvementManager = FindObjectOfType<ImprovementManager>();
         patience = basePatience + (improvementManager?.clientPatienceBonus ?? 0f);
 
-        // Initialisation du gestionnaire d'inventaire
         if (inventoryManager == null)
         {
             inventoryManager = FindObjectOfType<InventoryManager>();
         }
 
-        // Instanciation de la barre de patience
         if (PatienceBarPrefab != null)
         {
             patienceBarInstance = Instantiate(PatienceBarPrefab, transform);
 
-            // Abaisser la barre légèrement
             patienceBarInstance.transform.localPosition = new Vector3(0, 1.5f, 0);
 
             patienceBarScript = patienceBarInstance.GetComponent<PatienceBar>();
@@ -57,7 +66,6 @@ public class Client : MonoBehaviour
             }
         }
 
-        // Instanciation de la bulle de pensée
         if (BubblePrefab != null)
         {
             bubbleInstance = Instantiate(BubblePrefab, transform);
@@ -67,37 +75,46 @@ public class Client : MonoBehaviour
             bubbleCanvas.renderMode = RenderMode.WorldSpace;
 
             bubbleImage = bubbleInstance.GetComponentInChildren<Image>();
-            bubbleInstance.SetActive(false); // Masquer la bulle initialement
+            bubbleInstance.SetActive(false); 
         }
 
-        // Générer une demande aléatoire
         if (availableItems.Count > 0)
         {
             GenerateRandomDemand(availableItems);
         }
 
-        // Démarrer le compte à rebours de patience
+        if (destinations != null && destinations.Count > 0)
+        {
+            ChooseRandomDestination();
+        }
+        else
+        {
+            Debug.LogWarning("Aucune destination assignée !");
+        }
+
         StartCoroutine(ClientTimer());
     }
 
     void Update()
     {
-        // Mettre à jour la position de la bulle
         if (bubbleInstance != null)
         {
             bubbleInstance.transform.position = transform.position + Vector3.up * 3f;
         }
 
-        // Mettre à jour la position de la barre de patience
         if (patienceBarInstance != null)
         {
-            patienceBarInstance.transform.position = transform.position + Vector3.up * 1.5f; // Position ajustée
+            patienceBarInstance.transform.position = transform.position + Vector3.up * 1.5f; 
         }
 
-        // Mettre à jour la progression de la barre
         if (patienceBarScript != null)
         {
             patienceBarScript.UpdateBar((patience / basePatience) * 100);
+        }
+
+        if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
+        {
+            ChooseRandomDestination(); 
         }
     }
 
@@ -142,6 +159,16 @@ public class Client : MonoBehaviour
         }
 
         return false;
+    }
+
+    private void ChooseRandomDestination()
+    {
+        if (destinations.Count == 0)
+            return;
+
+        currentDestinationIndex = Random.Range(0, destinations.Count);
+
+        agent.SetDestination(destinations[currentDestinationIndex].position);
     }
 
     private IEnumerator ClientTimer()

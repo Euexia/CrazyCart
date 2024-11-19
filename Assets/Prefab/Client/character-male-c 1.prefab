@@ -95,6 +95,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 01ca51e29c6deb8499d1b3c2a7bcb22a, type: 2}
   - {fileID: 11400000, guid: fd239d01087181b4683e6cec7cfd0181, type: 2}
   basePatience: 30
+  destinations:
+  - {fileID: 7186579119407991101, guid: 58d213475ca060543a224b19abcc546d, type: 3}
+  - {fileID: 8457680932363047089, guid: 99277b96866afda409461bd1bd8e1ac3, type: 3}
+  - {fileID: 3632234982718729459, guid: 323a3c19dfcd7304fba690ce155ea417, type: 3}
+  - {fileID: 8823097692646854500, guid: 2f072f90dee2817488279e5da209bedc, type: 3}
+  - {fileID: 5488127210409814738, guid: d6ba71d804398c141a49b0291fec0c33, type: 3}
+  - {fileID: 753553317164165780, guid: b1a997c97fa1b814fbf875c36e685327, type: 3}
 --- !u!1 &1550065786034425087
 GameObject:
   m_ObjectHideFlags: 0

@@ -14,7 +14,6 @@ public class Carton : MonoBehaviour
  
     void Start()
     {
-        // Enregistrer la position et rotation d'origine
         originalPosition = transform.position;
         originalRotation = transform.rotation;
     }
@@ -23,7 +22,7 @@ public class Carton : MonoBehaviour
     {
         transform.position = originalPosition;
         transform.rotation = originalRotation;
-        gameObject.SetActive(true); // Réactiver le carton si désactivé
+        gameObject.SetActive(true);
     }
 }
 
