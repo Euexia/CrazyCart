@@ -32,6 +32,8 @@ public class Client : MonoBehaviour
     private NavMeshAgent agent;
     private int currentDestinationIndex = 0;
 
+    private bool hasReachedDestination = false; // Flag pour savoir si le client est arrivé à destination
+
     void Awake()
     {
         if (!TryGetComponent(out agent))
@@ -109,9 +111,19 @@ public class Client : MonoBehaviour
             patienceBarScript.UpdateBar((patience / basePatience) * 100);
         }
 
-        if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
+        // Vérification si le client a atteint sa destination
+        if (!hasReachedDestination && agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
         {
-            ChooseRandomDestination();
+            hasReachedDestination = true; // Le client est arrivé
+            agent.isStopped = true; // Arrêter le NavMeshAgent pour éviter de continuer à bouger légèrement
+            agent.velocity = Vector3.zero; // Arrêter complètement la vitesse
+            agent.ResetPath(); // Réinitialiser le path pour s'assurer qu'il ne bouge plus
+
+            // Désactivation complète du NavMeshAgent si vous ne voulez plus qu'il effectue des calculs de chemin
+            agent.enabled = false;
+
+            // Applique la rotation pour regarder la caméra
+            LookAtCamera();
         }
     }
 
@@ -167,6 +179,7 @@ public class Client : MonoBehaviour
         currentDestinationIndex = Random.Range(0, destinations.Count);
 
         agent.SetDestination(destinations[currentDestinationIndex].position);
+        hasReachedDestination = false; // Réinitialiser la destination pour qu'il commence à se déplacer
     }
 
     private IEnumerator ClientTimer()
@@ -179,5 +192,16 @@ public class Client : MonoBehaviour
 
         OnDespawn?.Invoke(); // Déclenchement de l'événement OnDespawn lorsque la patience atteint 0
         Destroy(gameObject);
+    }
+
+    private void LookAtCamera()
+    {
+        Camera mainCamera = Camera.main; // Utiliser la caméra principale
+        if (mainCamera != null)
+        {
+            // Faire en sorte que le client regarde la caméra
+            Vector3 targetPosition = new Vector3(mainCamera.transform.position.x, transform.position.y, mainCamera.transform.position.z);
+            transform.LookAt(targetPosition);
+        }
     }
 }
