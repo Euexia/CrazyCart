@@ -46,12 +46,11 @@ public class ItemCollector : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.F)) // Touche pour reposer le carton
+        if (Input.GetKeyDown(KeyCode.F)) 
         {
             PlaceCarton();
         }
 
-        // Toujours détecter les étagères proches
         FindNearbyShelf();
     }
 
@@ -122,13 +121,12 @@ public class ItemCollector : MonoBehaviour
             ItemData itemToPickup = nearbyItems[0];
             if (inventoryManager.IsInventoryFull())
             {
-                Debug.Log("Inventaire plein.");
+                inventoryManager.ShowInventoryFullMessage(); 
                 return;
             }
 
             inventoryManager.AddItem(itemToPickup.itemSO);
 
-            // Désactiver au lieu de détruire
             itemToPickup.gameObject.SetActive(false);
             nearbyItems.RemoveAt(0);
 
