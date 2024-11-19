@@ -7,29 +7,29 @@ public class GameManager : MonoBehaviour
     public List<Transform> spawnPoints;
     public List<GameObject> clientPrefabs;
     public int currentLevel = 1;
-    public float spawnInterval = 2f; // Intervalle entre les spawns
+    public float spawnInterval = 2f; 
     public float levelDuration = 5f;
 
     private List<GameObject> activeClients = new List<GameObject>();
     private bool levelRunning = false;
 
-    private UIManager uiManager; // Référence au UIManager
+    private UIManager uiManager; 
 
     void Start()
     {
-        uiManager = FindObjectOfType<UIManager>();  // Trouver le UIManager
+        uiManager = FindObjectOfType<UIManager>();  
         StartLevel();
     }
 
     public void StartLevel()
     {
         levelRunning = true;
-        StartCoroutine(SpawnClientsAtLevelStart());  // Spawn les clients dès le début du niveau
+        StartCoroutine(SpawnClientsAtLevelStart());  
     }
 
     private IEnumerator SpawnClientsAtLevelStart()
     {
-        int numberOfClientsToSpawn = currentLevel; // On spawn autant de clients que le niveau
+        int numberOfClientsToSpawn = currentLevel; 
         Debug.Log($"Niveau {currentLevel}: Nombre de clients à spawn = {numberOfClientsToSpawn}");
 
         for (int i = 0; i < numberOfClientsToSpawn; i++)
@@ -41,7 +41,6 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(spawnInterval);
         }
 
-        // Une fois tous les clients spawnés, on démarre le suivi
         StartCoroutine(ManageClients());
     }
 
@@ -49,7 +48,6 @@ public class GameManager : MonoBehaviour
     {
         while (levelRunning)
         {
-            // Vérifier si des clients ont terminé leur tâche et les enlever
             if (activeClients.Count == 0)
             {
                 EndLevel();
@@ -74,7 +72,6 @@ public class GameManager : MonoBehaviour
         Client clientScript = newClient.GetComponent<Client>();
         if (clientScript != null)
         {
-            // Abonnez-vous à l'événement pour gérer le despawn
             clientScript.OnClientCompleted += () => RemoveClient(newClient);
         }
     }
@@ -87,7 +84,6 @@ public class GameManager : MonoBehaviour
             Destroy(client);
         }
 
-        // Vérifiez si le niveau doit se terminer
         if (activeClients.Count == 0)
         {
             EndLevel();
@@ -100,39 +96,34 @@ public class GameManager : MonoBehaviour
 
         if (ImprovementManager.Instance != null)
         {
-            ImprovementManager.Instance.AddImprovementPoints(1); // Ajouter des points d'amélioration
+            ImprovementManager.Instance.AddImprovementPoints(1); 
         }
 
-        // Mettre le jeu en pause et afficher le menu d'amélioration
         PauseGame();
 
-        // Affiche le menu d'amélioration
         if (uiManager != null)
         {
             uiManager.ShowImprovementMenu();
         }
 
-        // Délai avant de passer au niveau suivant
-        StartCoroutine(WaitBeforeNextLevel(5f)); // Donne 5 secondes pour montrer le menu
+        StartCoroutine(WaitBeforeNextLevel(5f)); 
     }
 
     private IEnumerator WaitBeforeNextLevel(float delay)
     {
-        yield return new WaitForSeconds(delay); // Attendre avant de passer au niveau suivant
+        yield return new WaitForSeconds(delay); 
 
-        currentLevel++; // Incrémenter le niveau
-        StartLevel(); // Démarrer le prochain niveau
+        currentLevel++; 
+        StartLevel(); 
     }
 
-    // Fonction pour mettre le jeu en pause
     private void PauseGame()
     {
-        Time.timeScale = 0f;  // Met le jeu en pause
+        Time.timeScale = 0f;  
     }
 
-    // Fonction pour reprendre le jeu
     public void ResumeGame()
     {
-        Time.timeScale = 1f;  // Reprend le jeu
+        Time.timeScale = 1f; 
     }
 }

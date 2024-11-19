@@ -66,8 +66,6 @@ public class InventoryManager : MonoBehaviour
             items[itemSO] = 1;
         }
 
-        Debug.Log($"Objet ajouté à l'inventaire : {itemSO.itemName}");
-
         UpdateInventoryUI();
     }
 
@@ -88,30 +86,15 @@ public class InventoryManager : MonoBehaviour
 
     public void UpdateInventoryUI()
     {
-        Debug.Log("Mise à jour de l'inventaire UI...");
-
-        // Affichage des items actuels pour le débogage
-        foreach (var item in items)
-        {
-            Debug.Log($"Item: {item.Key.itemName}, Quantité: {item.Value}");
-        }
-
-        inventoryUI.UpdateUI(items); // Mise à jour réelle de l'UI
+        inventoryUI.UpdateUI(items);
     }
 
     public void ShowInventoryFullMessage()
     {
         if (inventoryFullCanvas != null)
         {
-            Debug.Log("Tentative d'affichage du Canvas : Inventaire plein.");
             inventoryFullCanvas.SetActive(true);
-            Debug.Log("Canvas activé : " + inventoryFullCanvas.activeSelf);
-
             Invoke(nameof(HideInventoryFullMessage), 4f);
-        }
-        else
-        {
-            Debug.LogError("Le Canvas pour 'Inventaire plein' n'est pas assigné dans l'inspecteur !");
         }
     }
 
@@ -138,12 +121,7 @@ public class InventoryManager : MonoBehaviour
                 items.Remove(itemSO);
             }
 
-            Debug.Log($"Objet {itemSO.itemName} jeté.");
             UpdateInventoryUI();
-        }
-        else
-        {
-            Debug.Log("L'objet n'est pas présent dans l'inventaire.");
         }
     }
 
@@ -162,19 +140,13 @@ public class InventoryManager : MonoBehaviour
         {
             if (IsInventoryFull())
             {
-                Debug.Log("Inventaire plein, impossible de ramasser le carton.");
                 return;
             }
 
             AddItem(carton.cartonItemSO);
 
             carton.gameObject.SetActive(false);
-            cartons.Add(carton); // Ajoute le carton à la liste
-            Debug.Log($"Carton {carton.gameObject.name} ajouté à l'inventaire.");
-        }
-        else
-        {
-            Debug.LogError("Tentative de ramasser un carton null.");
+            cartons.Add(carton);
         }
     }
 
@@ -197,18 +169,9 @@ public class InventoryManager : MonoBehaviour
             if (carton.cartonItemSO != null)
             {
                 AddItem(carton.cartonItemSO);
-                Debug.Log($"Carton {carton.gameObject.name} ajouté en tant qu'item {carton.cartonItemSO.itemName} dans l'inventaire.");
 
                 cartons.Add(carton);
             }
-            else
-            {
-                Debug.LogError($"Le carton {carton.gameObject.name} n'a pas de ItemSO associé.");
-            }
-        }
-        else
-        {
-            Debug.LogError("Le carton est nul.");
         }
     }
 
@@ -216,41 +179,33 @@ public class InventoryManager : MonoBehaviour
     {
         if (carton == null)
         {
-            Debug.LogError("Tentative de supprimer un carton null.");
             return;
         }
 
         if (cartons.Contains(carton))
         {
             cartons.Remove(carton);
-            Debug.Log($"Carton {carton.gameObject.name} supprimé de l'inventaire.");
 
             if (carton.cartonItemSO != null)
             {
-                RemoveItem(carton.cartonItemSO); // Supprime l'item associé
+                RemoveItem(carton.cartonItemSO);
             }
 
-            carton.gameObject.SetActive(true); // Réactive l'objet dans la scène
-        }
-        else
-        {
-            Debug.LogWarning($"Le carton {carton.gameObject.name} n'est pas présent dans l'inventaire.");
+            carton.gameObject.SetActive(true);
         }
 
-        UpdateInventoryUI(); // Mise à jour de l'interface utilisateur
+        UpdateInventoryUI();
     }
 
     public ItemSO FindItemByName(string itemName)
     {
         foreach (var item in items.Keys)
         {
-            Debug.Log($"Item dans l'inventaire : {item.itemName}");
             if (item.itemName == itemName)
             {
                 return item;
             }
         }
-        Debug.Log($"Aucun item avec le nom '{itemName}' trouvé dans l'inventaire.");
         return null;
     }
 }

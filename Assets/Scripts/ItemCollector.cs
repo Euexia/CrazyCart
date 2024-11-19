@@ -11,7 +11,7 @@ public class ItemCollector : MonoBehaviour
     private float interactionRange = 3f;
     private List<GameObject> shelfItems = new List<GameObject>();
 
-    private float placeCartonRange = 3f; // Distance maximale pour reposer un carton
+    private float placeCartonRange = 3f;
 
     void Start()
     {
@@ -22,7 +22,6 @@ public class ItemCollector : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.E))
         {
-            // Ramasser un carton
             if (currentCarton == null && nearbyItems.Count > 0)
             {
                 PickupItem();
@@ -35,18 +34,13 @@ public class ItemCollector : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R))
         {
-            // Recharger une étagère
             if (nearbyShelf != null)
             {
                 RefillShelf(nearbyShelf);
             }
-            else
-            {
-                Debug.Log("Aucune étagère à proximité.");
-            }
         }
 
-        if (Input.GetKeyDown(KeyCode.F)) 
+        if (Input.GetKeyDown(KeyCode.F))
         {
             PlaceCarton();
         }
@@ -70,7 +64,6 @@ public class ItemCollector : MonoBehaviour
             if (carton != null && currentCarton == null)
             {
                 currentCarton = carton;
-                Debug.Log($"Carton pris: {carton.gameObject.name}");
             }
         }
     }
@@ -91,7 +84,6 @@ public class ItemCollector : MonoBehaviour
             if (carton == currentCarton)
             {
                 currentCarton = null;
-                Debug.Log("Carton quitté.");
             }
         }
     }
@@ -101,7 +93,6 @@ public class ItemCollector : MonoBehaviour
         if (collision.collider.CompareTag("Shelf"))
         {
             nearbyShelf = collision.collider.GetComponent<Shelf>();
-            Debug.Log("Étagère détectée.");
         }
     }
 
@@ -110,7 +101,6 @@ public class ItemCollector : MonoBehaviour
         if (collision.collider.CompareTag("Shelf"))
         {
             nearbyShelf = null;
-            Debug.Log("Étagère quittée.");
         }
     }
 
@@ -121,7 +111,7 @@ public class ItemCollector : MonoBehaviour
             ItemData itemToPickup = nearbyItems[0];
             if (inventoryManager.IsInventoryFull())
             {
-                inventoryManager.ShowInventoryFullMessage(); 
+                inventoryManager.ShowInventoryFullMessage();
                 return;
             }
 
@@ -129,8 +119,6 @@ public class ItemCollector : MonoBehaviour
 
             itemToPickup.gameObject.SetActive(false);
             nearbyItems.RemoveAt(0);
-
-            Debug.Log($"Item {itemToPickup.itemSO.itemName} ramassé.");
         }
     }
 
@@ -140,12 +128,6 @@ public class ItemCollector : MonoBehaviour
         {
             inventoryManager.PickupCarton(currentCarton);
             currentCarton.gameObject.SetActive(false);
-
-            Debug.Log($"Carton {currentCarton.gameObject.name} ajouté à l'inventaire.");
-        }
-        else
-        {
-            Debug.Log("Aucun carton à prendre.");
         }
     }
 
@@ -153,47 +135,39 @@ public class ItemCollector : MonoBehaviour
     {
         if (currentCarton == null || currentCarton.containedItem == null)
         {
-            Debug.Log("Pas de carton ou contenu invalide.");
             return;
         }
 
         if (!string.Equals(currentCarton.containedItem.itemSO.itemName, shelf.acceptedItemName, StringComparison.OrdinalIgnoreCase))
         {
-            Debug.Log($"Le carton ne correspond pas à l'étagère ({shelf.acceptedItemName}).");
             return;
         }
 
         if (shelf.IsFull())
         {
-            Debug.Log("L'étagère est déjà pleine.");
             return;
         }
 
-        // Ajouter l'item dans l'étagère
         shelf.RefillShelf(currentCarton.containedItem.itemSO, 1);
-        Debug.Log($"Étagère rechargée avec {currentCarton.containedItem.itemSO.itemName}.");
     }
 
     public void ActivateNextItem()
     {
         foreach (GameObject item in shelfItems)
         {
-            if (!item.activeSelf) // Trouve un objet désactivé
+            if (!item.activeSelf)
             {
-                item.SetActive(true); // Le réactive
-                Debug.Log($"Item {item.name} réactivé sur l'étagère.");
+                item.SetActive(true);
                 return;
             }
         }
-
-        Debug.LogWarning("Aucun objet à réactiver sur l'étagère.");
     }
 
     void FindNearbyShelf()
     {
         Shelf[] allShelves = FindObjectsOfType<Shelf>();
         Shelf closestShelf = null;
-        float closestDistance = interactionRange; // Seuil pour la proximité
+        float closestDistance = interactionRange;
 
         foreach (Shelf shelf in allShelves)
         {
@@ -215,29 +189,17 @@ public class ItemCollector : MonoBehaviour
             float distanceToOriginalPosition = Vector3.Distance(transform.position, currentCarton.OriginalPosition);
             if (distanceToOriginalPosition > placeCartonRange)
             {
-                Debug.Log("Trop loin de l'emplacement d'origine pour reposer le carton.");
                 return;
             }
 
-            // Réinitialiser la position du carton
             currentCarton.ResetToOriginalPosition();
 
-            // Supprimer le carton de l'inventaire
             if (inventoryManager != null)
             {
                 inventoryManager.RemoveCarton(currentCarton);
             }
 
-            // Libérer la référence
             currentCarton = null;
-
-            Debug.Log("Carton reposé à son emplacement d'origine et retiré de l'inventaire.");
-        }
-        else
-        {
-            Debug.Log("Aucun carton à reposer.");
         }
     }
-
-
 }

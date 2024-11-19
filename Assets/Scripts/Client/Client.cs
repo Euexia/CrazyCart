@@ -26,20 +26,21 @@ public class Client : MonoBehaviour
     private float patience;
 
     public event System.Action OnClientCompleted;
-    public event System.Action OnDespawn; // Ajout de l'événement OnDespawn
+    public event System.Action OnDespawn;
 
     public List<Transform> destinations;
     private NavMeshAgent agent;
     private int currentDestinationIndex = 0;
 
-    private bool hasReachedDestination = false; // Flag pour savoir si le client est arrivé à destination
-
+    private bool hasReachedDestination = false;
     void Awake()
     {
         if (!TryGetComponent(out agent))
         {
             agent = gameObject.AddComponent<NavMeshAgent>();
         }
+
+        agent.avoidancePriority = Random.Range(0, 100);
     }
 
     void Start()
@@ -60,10 +61,6 @@ public class Client : MonoBehaviour
             if (patienceBarScript != null)
             {
                 patienceBarScript.UpdateBar((patience / basePatience) * 100);
-            }
-            else
-            {
-                Debug.LogError("Le script PatienceBar n'est pas attaché au prefab PatienceBarPrefab !");
             }
         }
 
@@ -86,10 +83,6 @@ public class Client : MonoBehaviour
         {
             ChooseRandomDestination();
         }
-        else
-        {
-            Debug.LogWarning("Aucune destination assignée !");
-        }
 
         StartCoroutine(ClientTimer());
     }
@@ -111,19 +104,26 @@ public class Client : MonoBehaviour
             patienceBarScript.UpdateBar((patience / basePatience) * 100);
         }
 
-        // Vérification si le client a atteint sa destination
         if (!hasReachedDestination && agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
         {
-            hasReachedDestination = true; // Le client est arrivé
-            agent.isStopped = true; // Arrêter le NavMeshAgent pour éviter de continuer à bouger légèrement
-            agent.velocity = Vector3.zero; // Arrêter complètement la vitesse
-            agent.ResetPath(); // Réinitialiser le path pour s'assurer qu'il ne bouge plus
+            hasReachedDestination = true;
+            agent.isStopped = true;
+            agent.velocity = Vector3.zero;
+            agent.ResetPath();
 
-            // Désactivation complète du NavMeshAgent si vous ne voulez plus qu'il effectue des calculs de chemin
-            agent.enabled = false;
-
-            // Applique la rotation pour regarder la caméra
             LookAtCamera();
+
+            agent.updateRotation = false;
+
+            StopAllCoroutines();
+        }
+        else if (hasReachedDestination)
+        {
+            agent.updateRotation = true;
+            if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
+            {
+                agent.SetDestination(destinations[currentDestinationIndex].position);
+            }
         }
     }
 
@@ -163,7 +163,7 @@ public class Client : MonoBehaviour
 
             OnClientCompleted?.Invoke();
 
-            OnDespawn?.Invoke(); // Déclenchement de l'événement OnDespawn
+            OnDespawn?.Invoke();
             Destroy(gameObject, 1f);
             return true;
         }
@@ -179,7 +179,7 @@ public class Client : MonoBehaviour
         currentDestinationIndex = Random.Range(0, destinations.Count);
 
         agent.SetDestination(destinations[currentDestinationIndex].position);
-        hasReachedDestination = false; // Réinitialiser la destination pour qu'il commence à se déplacer
+        hasReachedDestination = false;
     }
 
     private IEnumerator ClientTimer()
@@ -190,16 +190,15 @@ public class Client : MonoBehaviour
             yield return null;
         }
 
-        OnDespawn?.Invoke(); // Déclenchement de l'événement OnDespawn lorsque la patience atteint 0
+        OnDespawn?.Invoke();
         Destroy(gameObject);
     }
 
     private void LookAtCamera()
     {
-        Camera mainCamera = Camera.main; // Utiliser la caméra principale
+        Camera mainCamera = Camera.main;
         if (mainCamera != null)
         {
-            // Faire en sorte que le client regarde la caméra
             Vector3 targetPosition = new Vector3(mainCamera.transform.position.x, transform.position.y, mainCamera.transform.position.z);
             transform.LookAt(targetPosition);
         }
