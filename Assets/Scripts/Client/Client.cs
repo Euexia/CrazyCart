@@ -6,7 +6,7 @@ using UnityEngine.AI;
 
 public class Client : MonoBehaviour
 {
-    public ItemSO demandedItem; 
+    public ItemSO demandedItem;
     public GameObject BubblePrefab;
     public GameObject PatienceBarPrefab;
 
@@ -16,18 +16,19 @@ public class Client : MonoBehaviour
     private Image bubbleImage;
     private PatienceBar patienceBarScript;
 
-    public InventoryManager inventoryManager; 
+    public InventoryManager inventoryManager;
     public List<ItemSO> availableItems;
 
     private Canvas bubbleCanvas;
     private ImprovementManager improvementManager;
 
-    public float basePatience = 30f; 
-    private float patience; 
+    public float basePatience = 30f;
+    private float patience;
 
-    public event System.Action OnClientCompleted; 
+    public event System.Action OnClientCompleted;
+    public event System.Action OnDespawn; // Ajout de l'événement OnDespawn
 
-    public List<Transform> destinations;  
+    public List<Transform> destinations;
     private NavMeshAgent agent;
     private int currentDestinationIndex = 0;
 
@@ -52,9 +53,7 @@ public class Client : MonoBehaviour
         if (PatienceBarPrefab != null)
         {
             patienceBarInstance = Instantiate(PatienceBarPrefab, transform);
-
             patienceBarInstance.transform.localPosition = new Vector3(0, 1.5f, 0);
-
             patienceBarScript = patienceBarInstance.GetComponent<PatienceBar>();
             if (patienceBarScript != null)
             {
@@ -70,12 +69,10 @@ public class Client : MonoBehaviour
         {
             bubbleInstance = Instantiate(BubblePrefab, transform);
             bubbleInstance.transform.localPosition = new Vector3(0, 3, 0);
-
             bubbleCanvas = bubbleInstance.GetComponentInChildren<Canvas>();
             bubbleCanvas.renderMode = RenderMode.WorldSpace;
-
             bubbleImage = bubbleInstance.GetComponentInChildren<Image>();
-            bubbleInstance.SetActive(false); 
+            bubbleInstance.SetActive(false);
         }
 
         if (availableItems.Count > 0)
@@ -104,7 +101,7 @@ public class Client : MonoBehaviour
 
         if (patienceBarInstance != null)
         {
-            patienceBarInstance.transform.position = transform.position + Vector3.up * 1.5f; 
+            patienceBarInstance.transform.position = transform.position + Vector3.up * 1.5f;
         }
 
         if (patienceBarScript != null)
@@ -114,7 +111,7 @@ public class Client : MonoBehaviour
 
         if (agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
         {
-            ChooseRandomDestination(); 
+            ChooseRandomDestination();
         }
     }
 
@@ -154,6 +151,7 @@ public class Client : MonoBehaviour
 
             OnClientCompleted?.Invoke();
 
+            OnDespawn?.Invoke(); // Déclenchement de l'événement OnDespawn
             Destroy(gameObject, 1f);
             return true;
         }
@@ -179,6 +177,7 @@ public class Client : MonoBehaviour
             yield return null;
         }
 
+        OnDespawn?.Invoke(); // Déclenchement de l'événement OnDespawn lorsque la patience atteint 0
         Destroy(gameObject);
     }
 }

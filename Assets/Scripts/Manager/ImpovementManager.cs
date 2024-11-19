@@ -27,6 +27,8 @@ public class ImprovementManager : MonoBehaviour
     public GameObject particleEffectPrefab;
     public GameObject player;
 
+    public GameObject improvementMenuCanvas; // Canvas d'amélioration
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -47,11 +49,27 @@ public class ImprovementManager : MonoBehaviour
         upgradePatienceButton.onClick.AddListener(UpgradeClientPatience);
         UpdateImprovementPointsText();
     }
+
+    // Fonction pour afficher le menu d'amélioration et mettre le jeu en pause
+    public void OpenImprovementMenu()
+    {
+        improvementMenuCanvas.SetActive(true); // Affiche le canvas d'amélioration
+        Time.timeScale = 0f; // Met le jeu en pause
+    }
+
+    // Fonction pour fermer le menu d'amélioration et reprendre le jeu
+    public void CloseImprovementMenu()
+    {
+        improvementMenuCanvas.SetActive(false); // Cache le canvas d'amélioration
+        Time.timeScale = 1f; // Relance le jeu
+    }
+
     public void ImproveInventoryCapacity()
     {
         inventoryCapacityBonus++;
         Debug.Log("Capacité d'inventaire améliorée !");
     }
+
     private void UpdateImprovementPointsText()
     {
         if (improvementPointsText != null)
@@ -82,7 +100,6 @@ public class ImprovementManager : MonoBehaviour
             moveSpeedUpgradePoints++;
             UpdateImprovementPointsText();
             PlayParticleEffect();
-
         }
     }
 
@@ -93,7 +110,6 @@ public class ImprovementManager : MonoBehaviour
             inventoryUpgradePoints++;
             UpdateImprovementPointsText();
             PlayParticleEffect();
-
         }
     }
 
@@ -104,7 +120,6 @@ public class ImprovementManager : MonoBehaviour
             patienceUpgradePoints++;
             UpdateImprovementPointsText();
             PlayParticleEffect();
-
         }
     }
 
@@ -140,7 +155,6 @@ public class ImprovementManager : MonoBehaviour
         }
     }
 
-
     public bool UpgradeClientPatience(float amount)
     {
         if (improvementPoints > 0)
@@ -161,11 +175,8 @@ public class ImprovementManager : MonoBehaviour
         if (particleEffectPrefab != null && player != null)
         {
             GameObject particleEffect = Instantiate(particleEffectPrefab, player.transform.position, Quaternion.identity);
-
-            particleEffect.transform.localScale *= 3f; 
-
+            particleEffect.transform.localScale *= 3f;
             particleEffect.transform.SetParent(player.transform);
-
             Destroy(particleEffect, 2f);
         }
         else
@@ -173,7 +184,4 @@ public class ImprovementManager : MonoBehaviour
             Debug.LogWarning("Le prefab de particules ou le joueur n'est pas assigné.");
         }
     }
-
-
-
 }
