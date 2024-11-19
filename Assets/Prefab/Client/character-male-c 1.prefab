@@ -94,6 +94,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6a0e9ffbfff74e34887a413c0c489c32, type: 2}
   - {fileID: 11400000, guid: 01ca51e29c6deb8499d1b3c2a7bcb22a, type: 2}
   - {fileID: 11400000, guid: fd239d01087181b4683e6cec7cfd0181, type: 2}
+  - {fileID: 11400000, guid: c8480fcd1f901664693507d215f8095e, type: 2}
+  - {fileID: 11400000, guid: 6669d716314a36740b199e1be0fe337b, type: 2}
+  - {fileID: 11400000, guid: 6a0e9ffbfff74e34887a413c0c489c32, type: 2}
+  - {fileID: 11400000, guid: 32366360d40d0714fb0d0f8b7b900465, type: 2}
   basePatience: 30
   destinations:
   - {fileID: 7186579119407991101, guid: 58d213475ca060543a224b19abcc546d, type: 3}

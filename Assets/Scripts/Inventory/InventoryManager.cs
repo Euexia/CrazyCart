@@ -21,6 +21,7 @@ public class InventoryManager : MonoBehaviour
             inventoryFullCanvas.SetActive(false);
         }
     }
+
     void Awake()
     {
         if (improvementManager == null)
@@ -32,11 +33,11 @@ public class InventoryManager : MonoBehaviour
             }
         }
     }
+
     public int GetMaxCapacity()
     {
         return baseCapacity + (improvementManager?.inventoryCapacityBonus ?? 0);
     }
-
 
     public bool IsInventoryFull()
     {
@@ -47,7 +48,6 @@ public class InventoryManager : MonoBehaviour
         }
         return totalItems >= GetMaxCapacity();
     }
-    
 
     public void AddItem(ItemSO itemSO)
     {
@@ -88,7 +88,15 @@ public class InventoryManager : MonoBehaviour
 
     public void UpdateInventoryUI()
     {
-        inventoryUI.UpdateUI(items);
+        Debug.Log("Mise à jour de l'inventaire UI...");
+
+        // Affichage des items actuels pour le débogage
+        foreach (var item in items)
+        {
+            Debug.Log($"Item: {item.Key.itemName}, Quantité: {item.Value}");
+        }
+
+        inventoryUI.UpdateUI(items); // Mise à jour réelle de l'UI
     }
 
     public void ShowInventoryFullMessage()
@@ -161,6 +169,7 @@ public class InventoryManager : MonoBehaviour
             AddItem(carton.cartonItemSO);
 
             carton.gameObject.SetActive(false);
+            cartons.Add(carton); // Ajoute le carton à la liste
             Debug.Log($"Carton {carton.gameObject.name} ajouté à l'inventaire.");
         }
         else
@@ -202,6 +211,7 @@ public class InventoryManager : MonoBehaviour
             Debug.LogError("Le carton est nul.");
         }
     }
+
     public void RemoveCarton(Carton carton)
     {
         if (carton == null)
@@ -217,13 +227,17 @@ public class InventoryManager : MonoBehaviour
 
             if (carton.cartonItemSO != null)
             {
-                RemoveItem(carton.cartonItemSO);
+                RemoveItem(carton.cartonItemSO); // Supprime l'item associé
             }
+
+            carton.gameObject.SetActive(true); // Réactive l'objet dans la scène
         }
         else
         {
             Debug.LogWarning($"Le carton {carton.gameObject.name} n'est pas présent dans l'inventaire.");
         }
+
+        UpdateInventoryUI(); // Mise à jour de l'interface utilisateur
     }
 
     public ItemSO FindItemByName(string itemName)

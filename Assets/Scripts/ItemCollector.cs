@@ -212,7 +212,6 @@ public class ItemCollector : MonoBehaviour
     {
         if (currentCarton != null)
         {
-            // Vérifier la distance entre le joueur et la position d'origine du carton
             float distanceToOriginalPosition = Vector3.Distance(transform.position, currentCarton.OriginalPosition);
             if (distanceToOriginalPosition > placeCartonRange)
             {
@@ -223,7 +222,7 @@ public class ItemCollector : MonoBehaviour
             // Réinitialiser la position du carton
             currentCarton.ResetToOriginalPosition();
 
-            // Supprimer le carton de l'inventaire (optionnel)
+            // Supprimer le carton de l'inventaire
             if (inventoryManager != null)
             {
                 inventoryManager.RemoveCarton(currentCarton);
@@ -232,7 +231,7 @@ public class ItemCollector : MonoBehaviour
             // Libérer la référence
             currentCarton = null;
 
-            Debug.Log("Carton reposé à son emplacement d'origine.");
+            Debug.Log("Carton reposé à son emplacement d'origine et retiré de l'inventaire.");
         }
         else
         {
