@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class ItemCollector : MonoBehaviour
 {
@@ -10,8 +11,28 @@ public class ItemCollector : MonoBehaviour
     private Shelf nearbyShelf;
     private float interactionRange = 3f;
     private List<GameObject> shelfItems = new List<GameObject>();
-
     private float placeCartonRange = 3f;
+
+    private CrazyCart controls;
+
+    void Awake()
+    {
+        controls = new CrazyCart();
+        controls.Player.Interact.performed += ctx => OnInteract();
+        controls.Player.Refill.performed += ctx => OnRefill();
+        controls.Player.PlaceCarton.performed += ctx => OnPlaceCarton();
+    }
+
+
+    void OnEnable()
+    {
+        controls.Enable();
+    }
+
+    void OnDisable()
+    {
+        controls.Disable();
+    }
 
     void Start()
     {
@@ -20,32 +41,32 @@ public class ItemCollector : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            if (currentCarton == null && nearbyItems.Count > 0)
-            {
-                PickupItem();
-            }
-            else if (currentCarton != null && nearbyShelf == null)
-            {
-                PickupCarton();
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            if (nearbyShelf != null)
-            {
-                RefillShelf(nearbyShelf);
-            }
-        }
-
-        if (Input.GetKeyDown(KeyCode.F))
-        {
-            PlaceCarton();
-        }
-
         FindNearbyShelf();
+    }
+
+    private void OnInteract()
+    {
+        if (currentCarton == null && nearbyItems.Count > 0)
+        {
+            PickupItem();
+        }
+        else if (currentCarton != null && nearbyShelf == null)
+        {
+            PickupCarton();
+        }
+    }
+
+    private void OnRefill()
+    {
+        if (nearbyShelf != null)
+        {
+            RefillShelf(nearbyShelf);
+        }
+    }
+
+    private void OnPlaceCarton()
+    {
+        PlaceCarton();
     }
 
     void OnTriggerEnter(Collider other)

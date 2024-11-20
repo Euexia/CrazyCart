@@ -3,27 +3,22 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class MovementController : MonoBehaviour
 {
-    public float baseMoveSpeed = 5f; // Vitesse de déplacement de base
+    public float baseMoveSpeed = 5f;
     private Rigidbody rb;
     private Animator animator;
     private Vector3 movementInput;
 
-    private ImprovementManager improvementManager; // Référence au système d'améliorations
+    private ImprovementManager improvementManager; 
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
 
-        // Empêche les rotations accidentelles
         rb.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
 
-        // Récupère l'ImprovementManager dans la scène
         improvementManager = FindObjectOfType<ImprovementManager>();
-        if (improvementManager == null)
-        {
-            Debug.LogError("ImprovementManager non trouvé dans la scène.");
-        }
+       
     }
 
     void Update()
@@ -61,7 +56,6 @@ public class MovementController : MonoBehaviour
 
     private void MoveCharacter()
     {
-        // Calcule la vitesse totale (base + bonus d'amélioration)
         float totalMoveSpeed = baseMoveSpeed + (improvementManager?.moveSpeedBonus ?? 0f);
 
         Vector3 moveDirection = movementInput * totalMoveSpeed;

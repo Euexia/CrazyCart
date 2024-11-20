@@ -1,0 +1,34 @@
+{
+    "name": "map",
+    "maps": [
+        {
+            "name": "New action map",
+            "id": "f0faa18e-8302-4240-aa57-2a00ae1320fd",
+            "actions": [
+                {
+                    "name": "sauter",
+                    "type": "Value",
+                    "id": "73694f3e-9ae3-4088-883c-42bb79e7f8de",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "9de64eb1-d58c-4af1-9e16-22561a5b2e6d",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "sauter",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
