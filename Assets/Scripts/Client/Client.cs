@@ -33,6 +33,7 @@ public class Client : MonoBehaviour
     private int currentDestinationIndex = 0;
 
     private bool hasReachedDestination = false;
+
     void Awake()
     {
         if (!TryGetComponent(out agent))
@@ -110,20 +111,7 @@ public class Client : MonoBehaviour
             agent.isStopped = true;
             agent.velocity = Vector3.zero;
             agent.ResetPath();
-
-            LookAtCamera();
-
-            agent.updateRotation = false;
-
             StopAllCoroutines();
-        }
-        else if (hasReachedDestination)
-        {
-            agent.updateRotation = true;
-            if (!agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
-            {
-                agent.SetDestination(destinations[currentDestinationIndex].position);
-            }
         }
     }
 
@@ -192,15 +180,5 @@ public class Client : MonoBehaviour
 
         OnDespawn?.Invoke();
         Destroy(gameObject);
-    }
-
-    private void LookAtCamera()
-    {
-        Camera mainCamera = Camera.main;
-        if (mainCamera != null)
-        {
-            Vector3 targetPosition = new Vector3(mainCamera.transform.position.x, transform.position.y, mainCamera.transform.position.z);
-            transform.LookAt(targetPosition);
-        }
     }
 }

@@ -162,6 +162,7 @@ GameObject:
   - component: {fileID: 4249824252951389368}
   - component: {fileID: 1124238102591112446}
   - component: {fileID: 7075703045281152692}
+  - component: {fileID: -4066810722969012581}
   m_Layer: 5
   m_Name: PatienceBar
   m_TagString: Untagged
@@ -254,3 +255,15 @@ MonoBehaviour:
   normalColor: {r: 0, g: 1, b: 0, a: 1}
   alertColor: {r: 1, g: 0, b: 0, a: 1}
   alertThreshold: 27.6
+--- !u!114 &-4066810722969012581
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8913291548217045410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bf1566a04149d6448b864f67cdc62fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
