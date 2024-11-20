@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 1809082274478571569}
   - component: {fileID: 3793440158783971028}
   - component: {fileID: 4948813194940106897}
+  - component: {fileID: -8837395086019467890}
   m_Layer: 0
   m_Name: character-male-c 1
   m_TagString: Untagged
@@ -106,6 +107,31 @@ MonoBehaviour:
   - {fileID: 8823097692646854500, guid: 2f072f90dee2817488279e5da209bedc, type: 3}
   - {fileID: 5488127210409814738, guid: d6ba71d804398c141a49b0291fec0c33, type: 3}
   - {fileID: 753553317164165780, guid: b1a997c97fa1b814fbf875c36e685327, type: 3}
+  despawnParticles:
+  - {fileID: 6855314210357232287, guid: 7c2a9b83b809a0848915fabd9596b68b, type: 3}
+  - {fileID: 8487402871801164198, guid: 90375796f996bff4cabed66da5e558cb, type: 3}
+  - {fileID: 141433446842962269, guid: 9fe8f8b3288e45a44af36ff8aa04486e, type: 3}
+--- !u!95 &-8837395086019467890
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 413786844471638802}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: e6239fe8e458a154aacf7abd26e579a5, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1550065786034425087
 GameObject:
   m_ObjectHideFlags: 0

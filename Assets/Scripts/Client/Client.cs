@@ -37,7 +37,10 @@ public class Client : MonoBehaviour
     public List<GameObject> despawnParticles;
 
     private GameManager gameManager;
+    private GameObject particleInstance;
 
+    private bool particleSpawned = false;
+    private Animator animator;
     void Awake()
     {
         if (!TryGetComponent(out agent))
@@ -51,7 +54,6 @@ public class Client : MonoBehaviour
     void Start()
     {
         gameManager = FindObjectOfType<GameManager>();
-
 
         improvementManager = FindObjectOfType<ImprovementManager>();
         patience = basePatience + (improvementManager?.clientPatienceBonus ?? 0f);
@@ -99,12 +101,12 @@ public class Client : MonoBehaviour
     {
         if (bubbleInstance != null)
         {
-            bubbleInstance.transform.position = transform.position + Vector3.up * 3f;
+            bubbleInstance.transform.position = transform.position + Vector3.up * 1.8f;
         }
 
         if (patienceBarInstance != null)
         {
-            patienceBarInstance.transform.position = transform.position + Vector3.up * 1.5f;
+            patienceBarInstance.transform.position = transform.position + Vector3.up * 1.2f;
         }
 
         if (patienceBarScript != null)
@@ -112,8 +114,15 @@ public class Client : MonoBehaviour
             patienceBarScript.UpdateBar((patience / basePatience) * 100);
         }
 
-       
+        if (particleInstance != null)
+        {
+            particleInstance.transform.position = transform.position + Vector3.up * 2f;
+        }
+        HandleAnimations();
+
     }
+
+
 
     public void GenerateRandomDemand(List<ItemSO> availableItems)
     {
@@ -149,13 +158,12 @@ public class Client : MonoBehaviour
             inventoryManager.RemoveItem(demandedItem);
             bubbleInstance.SetActive(false);
 
-  
-            if (!gameManager.ClientLostByImpatience)  
+            if (!gameManager.ClientLostByImpatience)
             {
                 OnClientCompleted?.Invoke();
             }
 
-            OnDespawn?.Invoke();  
+            OnDespawn?.Invoke();
             Destroy(gameObject, 1f);
             return true;
         }
@@ -163,9 +171,7 @@ public class Client : MonoBehaviour
         return false;
     }
 
-
-
-private void ChooseRandomDestination()
+    private void ChooseRandomDestination()
     {
         if (destinations.Count == 0)
             return;
@@ -174,6 +180,16 @@ private void ChooseRandomDestination()
 
         agent.SetDestination(destinations[currentDestinationIndex].position);
         hasReachedDestination = false;
+    }
+
+    private void GoToSpawnPoint()
+    {
+        if (gameManager != null && gameManager.spawnPoints.Count > 0)
+        {
+            Transform spawnPoint = gameManager.spawnPoints[Random.Range(0, gameManager.spawnPoints.Count)];
+
+            agent.SetDestination(spawnPoint.position);
+        }
     }
 
     private IEnumerator ClientTimer()
@@ -186,10 +202,62 @@ private void ChooseRandomDestination()
 
         if (patience <= 0)
         {
-            gameManager.SetClientLostByImpatience(true); 
+            gameManager.SetClientLostByImpatience(true);
+
+            if (bubbleInstance != null)
+            {
+                bubbleInstance.SetActive(false);
+            }
+
+            if (patienceBarInstance != null)
+            {
+                patienceBarInstance.SetActive(false);
+            }
+
+            if (!particleSpawned)
+            {
+                GameObject particlePrefab = despawnParticles[Random.Range(0, despawnParticles.Count)];
+
+                particleInstance = Instantiate(particlePrefab, transform.position + Vector3.up * 2f, Quaternion.identity);
+                particleSpawned = true;
+            }
+
+            if (particleInstance != null)
+            {
+                particleInstance.transform.position = transform.position + Vector3.up * 2f;
+            }
+
+            GoToSpawnPoint();
+
+            while (Vector3.Distance(transform.position, agent.destination) > 0.5f)
+            {
+                yield return null;
+            }
+
             OnDespawn?.Invoke();
             Destroy(gameObject);
+
+            if (particleInstance != null)
+            {
+                Destroy(particleInstance, 2f);
+            }
         }
     }
 
+    private void HandleAnimations()
+    {
+        if (animator != null)
+        {
+            if (agent.velocity.magnitude > 0.1f)
+            {
+                animator.SetBool("isWalking", true); 
+            }
+            else
+            {
+                animator.SetBool("isWalking", false); 
+            }
+        }
+
+
+    }
 }
