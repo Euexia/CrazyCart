@@ -15,6 +15,8 @@ public class ItemCollector : MonoBehaviour
 
     private CrazyCart controls;
 
+    public GameObject pickupParticlesPrefab;
+
     void Awake()
     {
         controls = new CrazyCart();
@@ -137,6 +139,11 @@ public class ItemCollector : MonoBehaviour
             }
 
             inventoryManager.AddItem(itemToPickup.itemSO);
+
+            if (pickupParticlesPrefab != null)
+            {
+                Instantiate(pickupParticlesPrefab, itemToPickup.transform.position, Quaternion.identity);
+            }
 
             itemToPickup.gameObject.SetActive(false);
             nearbyItems.RemoveAt(0);

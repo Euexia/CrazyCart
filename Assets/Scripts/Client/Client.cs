@@ -34,6 +34,10 @@ public class Client : MonoBehaviour
 
     private bool hasReachedDestination = false;
 
+    public List<GameObject> despawnParticles;
+
+    private GameManager gameManager;
+
     void Awake()
     {
         if (!TryGetComponent(out agent))
@@ -46,6 +50,9 @@ public class Client : MonoBehaviour
 
     void Start()
     {
+        gameManager = FindObjectOfType<GameManager>();
+
+
         improvementManager = FindObjectOfType<ImprovementManager>();
         patience = basePatience + (improvementManager?.clientPatienceBonus ?? 0f);
 
@@ -105,14 +112,7 @@ public class Client : MonoBehaviour
             patienceBarScript.UpdateBar((patience / basePatience) * 100);
         }
 
-        if (!hasReachedDestination && agent.remainingDistance <= agent.stoppingDistance && !agent.pathPending)
-        {
-            hasReachedDestination = true;
-            agent.isStopped = true;
-            agent.velocity = Vector3.zero;
-            agent.ResetPath();
-            StopAllCoroutines();
-        }
+       
     }
 
     public void GenerateRandomDemand(List<ItemSO> availableItems)
@@ -139,7 +139,7 @@ public class Client : MonoBehaviour
 
     public bool CheckIfPlayerHasItem()
     {
-        if (inventoryManager == null || demandedItem == null)
+        if (inventoryManager == null || demandedItem == null || patience <= 0)
         {
             return false;
         }
@@ -149,9 +149,13 @@ public class Client : MonoBehaviour
             inventoryManager.RemoveItem(demandedItem);
             bubbleInstance.SetActive(false);
 
-            OnClientCompleted?.Invoke();
+  
+            if (!gameManager.ClientLostByImpatience)  
+            {
+                OnClientCompleted?.Invoke();
+            }
 
-            OnDespawn?.Invoke();
+            OnDespawn?.Invoke();  
             Destroy(gameObject, 1f);
             return true;
         }
@@ -159,7 +163,9 @@ public class Client : MonoBehaviour
         return false;
     }
 
-    private void ChooseRandomDestination()
+
+
+private void ChooseRandomDestination()
     {
         if (destinations.Count == 0)
             return;
@@ -178,7 +184,12 @@ public class Client : MonoBehaviour
             yield return null;
         }
 
-        OnDespawn?.Invoke();
-        Destroy(gameObject);
+        if (patience <= 0)
+        {
+            gameManager.SetClientLostByImpatience(true); 
+            OnDespawn?.Invoke();
+            Destroy(gameObject);
+        }
     }
+
 }

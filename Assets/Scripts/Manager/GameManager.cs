@@ -7,29 +7,34 @@ public class GameManager : MonoBehaviour
     public List<Transform> spawnPoints;
     public List<GameObject> clientPrefabs;
     public int currentLevel = 1;
-    public float spawnInterval = 2f; 
+    public float spawnInterval = 2f;
     public float levelDuration = 5f;
 
     private List<GameObject> activeClients = new List<GameObject>();
     private bool levelRunning = false;
 
-    private UIManager uiManager; 
+    private UIManager uiManager;
+    public bool ClientLostByImpatience { get; private set; } 
 
     void Start()
     {
-        uiManager = FindObjectOfType<UIManager>();  
+        uiManager = FindObjectOfType<UIManager>();
         StartLevel();
     }
 
     public void StartLevel()
     {
+        ClientLostByImpatience = false; 
         levelRunning = true;
-        StartCoroutine(SpawnClientsAtLevelStart());  
+        StartCoroutine(SpawnClientsAtLevelStart());
     }
-
+    public void SetClientLostByImpatience(bool value)
+    {
+        ClientLostByImpatience = value;
+    }
     private IEnumerator SpawnClientsAtLevelStart()
     {
-        int numberOfClientsToSpawn = currentLevel; 
+        int numberOfClientsToSpawn = currentLevel;
         Debug.Log($"Niveau {currentLevel}: Nombre de clients à spawn = {numberOfClientsToSpawn}");
 
         for (int i = 0; i < numberOfClientsToSpawn; i++)
@@ -72,9 +77,15 @@ public class GameManager : MonoBehaviour
         Client clientScript = newClient.GetComponent<Client>();
         if (clientScript != null)
         {
+            clientScript.OnClientCompleted -= () => RemoveClient(newClient);
+            clientScript.OnDespawn -= () => RemoveClient(newClient);
+
             clientScript.OnClientCompleted += () => RemoveClient(newClient);
+            clientScript.OnDespawn += () => RemoveClient(newClient);
         }
     }
+
+
 
     private void RemoveClient(GameObject client)
     {
@@ -84,20 +95,25 @@ public class GameManager : MonoBehaviour
             Destroy(client);
         }
 
-        if (activeClients.Count == 0)
+        if (activeClients.Count == 0 && levelRunning)
         {
             EndLevel();
         }
     }
 
+
     public void EndLevel()
     {
         levelRunning = false;
 
-        if (ImprovementManager.Instance != null)
+        if (!ClientLostByImpatience)
         {
-            ImprovementManager.Instance.AddImprovementPoints(1); 
+            if (ImprovementManager.Instance != null)
+            {
+                ImprovementManager.Instance.AddImprovementPoints(1);
+            }
         }
+        
 
         PauseGame();
 
@@ -106,24 +122,24 @@ public class GameManager : MonoBehaviour
             uiManager.ShowImprovementMenu();
         }
 
-        StartCoroutine(WaitBeforeNextLevel(5f)); 
+        StartCoroutine(WaitBeforeNextLevel(5f));
     }
 
     private IEnumerator WaitBeforeNextLevel(float delay)
     {
-        yield return new WaitForSeconds(delay); 
+        yield return new WaitForSeconds(delay);
 
-        currentLevel++; 
-        StartLevel(); 
+        currentLevel++;
+        StartLevel();
     }
 
     private void PauseGame()
     {
-        Time.timeScale = 0f;  
+        Time.timeScale = 0f;
     }
 
     public void ResumeGame()
     {
-        Time.timeScale = 1f; 
+        Time.timeScale = 1f;
     }
 }

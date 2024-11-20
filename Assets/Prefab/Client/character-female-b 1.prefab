@@ -435,6 +435,11 @@ MonoBehaviour:
   - {fileID: 8823097692646854500, guid: 2f072f90dee2817488279e5da209bedc, type: 3}
   - {fileID: 5488127210409814738, guid: d6ba71d804398c141a49b0291fec0c33, type: 3}
   - {fileID: 753553317164165780, guid: b1a997c97fa1b814fbf875c36e685327, type: 3}
+  despawnParticles:
+  - {fileID: 8656522925564163052, guid: e509867be4f82f246a95eca1ee5a2d61, type: 3}
+  - {fileID: 6855314210357232287, guid: 7c2a9b83b809a0848915fabd9596b68b, type: 3}
+  - {fileID: 8487402871801164198, guid: 90375796f996bff4cabed66da5e558cb, type: 3}
+  - {fileID: 141433446842962269, guid: 9fe8f8b3288e45a44af36ff8aa04486e, type: 3}
 --- !u!114 &7643082466322398975
 MonoBehaviour:
   m_ObjectHideFlags: 0
