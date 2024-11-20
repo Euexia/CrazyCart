@@ -4466,6 +4466,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Background
       objectReference: {fileID: 0}
+    - target: {fileID: 6596042850995454448, guid: 650934fc4814e1a48bdd78a1b6f8d593,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7907803794938197719, guid: 650934fc4814e1a48bdd78a1b6f8d593,
         type: 3}
       propertyPath: m_Pivot.x
@@ -4499,22 +4504,22 @@ PrefabInstance:
     - target: {fileID: 7907803794938197719, guid: 650934fc4814e1a48bdd78a1b6f8d593,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: -1212
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7907803794938197719, guid: 650934fc4814e1a48bdd78a1b6f8d593,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 206
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7907803794938197719, guid: 650934fc4814e1a48bdd78a1b6f8d593,
         type: 3}
       propertyPath: m_LocalScale.x
-      value: 2.6697695
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7907803794938197719, guid: 650934fc4814e1a48bdd78a1b6f8d593,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.8426249
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7907803794938197719, guid: 650934fc4814e1a48bdd78a1b6f8d593,
         type: 3}
