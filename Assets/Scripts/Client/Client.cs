@@ -9,6 +9,7 @@ public class Client : MonoBehaviour
     public ItemSO demandedItem;
     public GameObject BubblePrefab;
     public GameObject PatienceBarPrefab;
+    public Sprite SpritePrefab;
 
     private GameObject bubbleInstance;
     private GameObject patienceBarInstance;
@@ -26,7 +27,8 @@ public class Client : MonoBehaviour
     private float patience;
 
     public event System.Action OnClientCompleted;
-    public event System.Action OnDespawn;
+    public event System.Action OnDespawn;  // Remis ici pour signaler la désintégration du client
+    public event System.Action OnSpawnSprite;
 
     public List<Transform> destinations;
     private NavMeshAgent agent;
@@ -34,13 +36,11 @@ public class Client : MonoBehaviour
 
     private bool hasReachedDestination = false;
 
-    public List<GameObject> despawnParticles;
+    public List<SpriteRenderer> spawnedSprites = new List<SpriteRenderer>();
 
     private GameManager gameManager;
-    private GameObject particleInstance;
-
-    private bool particleSpawned = false;
     private Animator animator;
+
     void Awake()
     {
         if (!TryGetComponent(out agent))
@@ -114,15 +114,8 @@ public class Client : MonoBehaviour
             patienceBarScript.UpdateBar((patience / basePatience) * 100);
         }
 
-        if (particleInstance != null)
-        {
-            particleInstance.transform.position = transform.position + Vector3.up * 2f;
-        }
         HandleAnimations();
-
     }
-
-
 
     public void GenerateRandomDemand(List<ItemSO> availableItems)
     {
@@ -163,7 +156,7 @@ public class Client : MonoBehaviour
                 OnClientCompleted?.Invoke();
             }
 
-            OnDespawn?.Invoke();
+            OnDespawn?.Invoke();  // Appel à OnDespawn avant la destruction du client
             Destroy(gameObject, 1f);
             return true;
         }
@@ -177,7 +170,6 @@ public class Client : MonoBehaviour
             return;
 
         currentDestinationIndex = Random.Range(0, destinations.Count);
-
         agent.SetDestination(destinations[currentDestinationIndex].position);
         hasReachedDestination = false;
     }
@@ -187,7 +179,6 @@ public class Client : MonoBehaviour
         if (gameManager != null && gameManager.spawnPoints.Count > 0)
         {
             Transform spawnPoint = gameManager.spawnPoints[Random.Range(0, gameManager.spawnPoints.Count)];
-
             agent.SetDestination(spawnPoint.position);
         }
     }
@@ -214,17 +205,9 @@ public class Client : MonoBehaviour
                 patienceBarInstance.SetActive(false);
             }
 
-            if (!particleSpawned)
+            if (SpritePrefab != null)
             {
-                GameObject particlePrefab = despawnParticles[Random.Range(0, despawnParticles.Count)];
-
-                particleInstance = Instantiate(particlePrefab, transform.position + Vector3.up * 2f, Quaternion.identity);
-                particleSpawned = true;
-            }
-
-            if (particleInstance != null)
-            {
-                particleInstance.transform.position = transform.position + Vector3.up * 2f;
+                SpawnSprite();
             }
 
             GoToSpawnPoint();
@@ -234,14 +217,20 @@ public class Client : MonoBehaviour
                 yield return null;
             }
 
-            OnDespawn?.Invoke();
-            Destroy(gameObject);
+            OnDespawn?.Invoke();  
 
-            if (particleInstance != null)
-            {
-                Destroy(particleInstance, 2f);
-            }
+            Destroy(gameObject);
         }
+    }
+
+    private void SpawnSprite()
+    {
+        GameObject spriteObject = new GameObject("DespawnSprite");
+        spriteObject.transform.position = transform.position + Vector3.up * 2f;
+
+        SpriteRenderer spriteRenderer = spriteObject.AddComponent<SpriteRenderer>();
+        spriteRenderer.sprite = SpritePrefab;
+        spawnedSprites.Add(spriteRenderer);
     }
 
     private void HandleAnimations()
@@ -250,14 +239,12 @@ public class Client : MonoBehaviour
         {
             if (agent.velocity.magnitude > 0.1f)
             {
-                animator.SetBool("isWalking", true); 
+                animator.SetBool("isWalking", true);
             }
             else
             {
-                animator.SetBool("isWalking", false); 
+                animator.SetBool("isWalking", false);
             }
         }
-
-
     }
 }

@@ -142,13 +142,24 @@ public class ItemCollector : MonoBehaviour
 
             if (pickupParticlesPrefab != null)
             {
-                Instantiate(pickupParticlesPrefab, itemToPickup.transform.position, Quaternion.identity);
+                GameObject particles = Instantiate(pickupParticlesPrefab, itemToPickup.transform.position, Quaternion.identity);
+                ParticleSystem particleSystem = particles.GetComponent<ParticleSystem>();
+
+                if (particleSystem != null)
+                {
+                    Destroy(particles, particleSystem.main.duration + particleSystem.main.startLifetime.constantMax);
+                }
+                else
+                {
+                    Destroy(particles, 5f);
+                }
             }
 
             itemToPickup.gameObject.SetActive(false);
             nearbyItems.RemoveAt(0);
         }
     }
+
 
     void PickupCarton()
     {
