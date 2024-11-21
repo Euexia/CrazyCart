@@ -9,7 +9,7 @@ public class Client : MonoBehaviour
     public ItemSO demandedItem;
     public GameObject BubblePrefab;
     public GameObject PatienceBarPrefab;
-    public Sprite SpritePrefab; 
+    public List<Sprite> SpritePrefabs;
 
     private GameObject bubbleInstance;
     private GameObject patienceBarInstance;
@@ -27,8 +27,7 @@ public class Client : MonoBehaviour
     private float patience;
 
     public event System.Action OnClientCompleted;
-    public event System.Action OnDespawn; 
-    public event System.Action OnSpawnSprite;
+    public event System.Action OnDespawn;
 
     public List<Transform> destinations;
     private NavMeshAgent agent;
@@ -36,10 +35,10 @@ public class Client : MonoBehaviour
 
     private bool hasReachedDestination = false;
 
-    public List<Sprite> spawnedSprites = new List<Sprite>(); 
-
     private GameManager gameManager;
     private Animator animator;
+
+    private SpriteRenderer spriteRenderer;
 
     void Awake()
     {
@@ -49,12 +48,14 @@ public class Client : MonoBehaviour
         }
 
         agent.avoidancePriority = Random.Range(0, 100);
+
+        spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
+        spriteRenderer.enabled = false;
     }
 
     void Start()
     {
         gameManager = FindObjectOfType<GameManager>();
-
         improvementManager = FindObjectOfType<ImprovementManager>();
         patience = basePatience + (improvementManager?.clientPatienceBonus ?? 0f);
 
@@ -96,7 +97,6 @@ public class Client : MonoBehaviour
 
         StartCoroutine(ClientTimer());
     }
-
     void Update()
     {
         if (bubbleInstance != null)
@@ -156,7 +156,7 @@ public class Client : MonoBehaviour
                 OnClientCompleted?.Invoke();
             }
 
-            OnDespawn?.Invoke();  
+            OnDespawn?.Invoke();
             Destroy(gameObject, 1f);
             return true;
         }
@@ -205,10 +205,7 @@ public class Client : MonoBehaviour
                 patienceBarInstance.SetActive(false);
             }
 
-            if (SpritePrefab != null)
-            {
-                SpawnSprite();
-            }
+            SpawnRandomSprite();
 
             GoToSpawnPoint();
 
@@ -223,40 +220,20 @@ public class Client : MonoBehaviour
         }
     }
 
-    private void SpawnSprite()
+    private void SpawnRandomSprite()
     {
-        GameObject spriteObject = new GameObject("DespawnSprite");
-
-        Canvas canvas = GameObject.Find("Canvas").GetComponent<Canvas>();
-        if (canvas != null)
+        if (SpritePrefabs.Count > 0)
         {
-            spriteObject.transform.SetParent(canvas.transform);
+            int randomIndex = Random.Range(0, SpritePrefabs.Count);
+            Sprite randomSprite = SpritePrefabs[randomIndex];
+
+            spriteRenderer.sprite = randomSprite;
+            spriteRenderer.enabled = true;
+
+            spriteRenderer.transform.position = transform.position + Vector3.up * 2f;
+
+            spriteRenderer.transform.localScale = new Vector3(1f, 1f, 1f);
         }
-        else
-        {
-            Debug.LogError("Canvas non trouvé !");
-            return;
-        }
-
-        spriteObject.transform.position = transform.position + Vector3.up * 2f;
-
-        Image spriteImage = spriteObject.AddComponent<Image>();
-
-        if (SpritePrefab != null)
-        {
-            spriteImage.sprite = SpritePrefab; 
-        }
-        else
-        {
-            Debug.LogError("Le SpritePrefab n'a pas été assigné dans l'Inspector.");
-            return;
-        }
-
-        RectTransform rectTransform = spriteImage.GetComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(100, 100); 
-        rectTransform.localPosition = Vector3.zero;
-
-        spawnedSprites.Add(spriteImage.sprite);
     }
 
     private void HandleAnimations()

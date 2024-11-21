@@ -89,7 +89,7 @@ GameObject:
   - component: {fileID: 2541827466527118425}
   - component: {fileID: -8557405036211229755}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: Bubble
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -160,7 +160,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 1
+  m_PresetInfoIsWorld: 0
 --- !u!114 &2541827466527118425
 MonoBehaviour:
   m_ObjectHideFlags: 0
