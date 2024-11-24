@@ -8,30 +8,15 @@ public class MenuManager : MonoBehaviour
     public GameObject settingsPopup;
     public GameObject creditsPopup;
 
-    public InputRebinding rebindPrefab; // Prefab pour une action spécifique
-    public Transform rebindContainer;
+
     private CrazyCart controls;
 
     private void Awake()
     {
         controls = new CrazyCart();
     }
-    private void OnEnable()
-    {
-        foreach (var action in controls.asset.actionMaps[0].actions)
-        {
-            CreateRebindUI(action);
-        }
-    }
-    private void CreateRebindUI(InputAction action)
-    {
-        var rebindUI = Instantiate(rebindPrefab, rebindContainer);
-        rebindUI.bindingDisplayNameText.text = action.GetBindingDisplayString(0);
-        rebindUI.GetComponentInChildren<UnityEngine.UI.Button>().onClick.AddListener(() =>
-        {
-            rebindUI.StartRebinding(action, 0);
-        });
-    }
+   
+   
     public void StartGame()
     {
         SceneManager.LoadScene("Game");

@@ -10,6 +10,7 @@ public class Client : MonoBehaviour
     public GameObject BubblePrefab;
     public GameObject PatienceBarPrefab;
     public List<Sprite> SpritePrefabs;
+    public List<Sprite> HappyEmotes; // Liste des émojis heureux
 
     private GameObject bubbleInstance;
     private GameObject patienceBarInstance;
@@ -40,6 +41,10 @@ public class Client : MonoBehaviour
 
     private SpriteRenderer spriteRenderer;
 
+    private GameObject spriteCanvasInstance;
+    private Image spriteImage; 
+    public AudioClip spawnSound;
+
     void Awake()
     {
         if (!TryGetComponent(out agent))
@@ -51,6 +56,51 @@ public class Client : MonoBehaviour
 
         spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
         spriteRenderer.enabled = false;
+
+        CreateSpriteCanvas();
+    }
+
+    private void CreateSpriteCanvas()
+    {
+        GameObject canvasObject = new GameObject("SpriteCanvas");
+        canvasObject.transform.SetParent(transform);
+        canvasObject.transform.localPosition = new Vector3(0, 1f, 0); 
+
+        Canvas canvas = canvasObject.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+
+        RectTransform rectTransform = canvasObject.GetComponent<RectTransform>();
+        rectTransform.sizeDelta = new Vector2(0.5f, 0.5f);  
+
+        // Ajoute un composant Image
+        spriteImage = canvasObject.AddComponent<Image>();
+        spriteImage.enabled = false; 
+    }
+
+    private void SpawnSpriteOnCanvas(Sprite sprite)
+    {
+        if (sprite == null)
+        {
+            Debug.LogWarning("Aucun sprite fourni pour SpawnSpriteOnCanvas !");
+            return;
+        }
+
+        if (spriteImage == null)
+        {
+            Debug.LogError("Le composant Image n'est pas configuré !");
+            return;
+        }
+
+        spriteImage.sprite = sprite; 
+        spriteImage.enabled = true; 
+    }
+
+    private void HideSpriteOnCanvas()
+    {
+        if (spriteImage != null)
+        {
+            spriteImage.enabled = false;
+        }
     }
 
     void Start()
@@ -97,6 +147,7 @@ public class Client : MonoBehaviour
 
         StartCoroutine(ClientTimer());
     }
+
     void Update()
     {
         if (bubbleInstance != null)
@@ -141,7 +192,7 @@ public class Client : MonoBehaviour
 
     public bool CheckIfPlayerHasItem()
     {
-        if (inventoryManager == null || demandedItem == null || patience <= 0)
+        if (inventoryManager == null || demandedItem == null)
         {
             return false;
         }
@@ -151,18 +202,48 @@ public class Client : MonoBehaviour
             inventoryManager.RemoveItem(demandedItem);
             bubbleInstance.SetActive(false);
 
-            if (!gameManager.ClientLostByImpatience)
-            {
-                OnClientCompleted?.Invoke();
-            }
+            ShowHappyEmote();
 
-            OnDespawn?.Invoke();
-            Destroy(gameObject, 1f);
+            FindObjectOfType<GameManager>().globalTotalClients++;
+            gameManager.ClientSatisfied(); 
+
+            GoToSpawnPoint();
+
+            StartCoroutine(WaitUntilAtSpawnPoint());
+
             return true;
         }
 
         return false;
     }
+
+
+    private IEnumerator WaitUntilAtSpawnPoint()
+    {
+        while (Vector3.Distance(transform.position, agent.destination) > 0.5f)
+        {
+            yield return null;
+        }
+
+        OnDespawn?.Invoke();
+        Destroy(gameObject);
+    }
+
+    private void ShowHappyEmote()
+    {
+        if (patienceBarInstance != null)
+        {
+            patienceBarInstance.SetActive(false);
+        }
+
+        if (HappyEmotes != null && HappyEmotes.Count > 0)
+        {
+            int randomIndex = Random.Range(0, HappyEmotes.Count);
+            Sprite happyEmote = HappyEmotes[randomIndex];
+            SpawnSpriteOnCanvas(happyEmote);
+        }
+    }
+
 
     private void ChooseRandomDestination()
     {
@@ -179,9 +260,15 @@ public class Client : MonoBehaviour
         if (gameManager != null && gameManager.spawnPoints.Count > 0)
         {
             Transform spawnPoint = gameManager.spawnPoints[Random.Range(0, gameManager.spawnPoints.Count)];
+
             agent.SetDestination(spawnPoint.position);
         }
+        else
+        {
+            Debug.LogWarning("Aucun point de spawn défini !");
+        }
     }
+
 
     private IEnumerator ClientTimer()
     {
@@ -222,17 +309,22 @@ public class Client : MonoBehaviour
 
     private void SpawnRandomSprite()
     {
-        if (SpritePrefabs.Count > 0)
+        if (SpritePrefabs == null || SpritePrefabs.Count == 0)
         {
-            int randomIndex = Random.Range(0, SpritePrefabs.Count);
-            Sprite randomSprite = SpritePrefabs[randomIndex];
+            Debug.LogWarning("Aucun sprite dans SpritePrefabs. Vérifiez l'assignation dans l'inspecteur !");
+            return;
+        }
 
-            spriteRenderer.sprite = randomSprite;
-            spriteRenderer.enabled = true;
+        int randomIndex = Random.Range(0, SpritePrefabs.Count);
+        Sprite randomSprite = SpritePrefabs[randomIndex];
 
-            spriteRenderer.transform.position = transform.position + Vector3.up * 2f;
-
-            spriteRenderer.transform.localScale = new Vector3(1f, 1f, 1f);
+        if (spriteImage != null)
+        {
+            SpawnSpriteOnCanvas(randomSprite);
+        }
+        else
+        {
+            Debug.LogError("SpriteImage non configuré correctement !");
         }
     }
 
@@ -250,4 +342,10 @@ public class Client : MonoBehaviour
             }
         }
     }
+    public bool IsSatisfied()
+    {
+        return inventoryManager.HasItem(demandedItem);  
+    }
+ 
+
 }

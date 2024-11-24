@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,28 +12,69 @@ public class GameManager : MonoBehaviour
     public float spawnInterval = 2f;
     public float levelDuration = 5f;
 
+    public AudioClip backgroundMusic;
+    private AudioSource audioSource;
+
     private List<GameObject> activeClients = new List<GameObject>();
     private bool levelRunning = false;
 
     private UIManager uiManager;
-    public bool ClientLostByImpatience { get; private set; } 
+    public bool ClientLostByImpatience { get; private set; }
+
+    public GameObject statsCanvas;
+    public TextMeshProUGUI statsText;
+    private bool statsDisplayed = false;
+
+    public int satisfiedClients = 0;
+    public int globalTotalClients = 0; 
 
     void Start()
     {
         uiManager = FindObjectOfType<UIManager>();
+        audioSource = gameObject.AddComponent<AudioSource>();
+
+        ConfigureAudio();
         StartLevel();
+    }
+
+    private void ConfigureAudio()
+    {
+        if (backgroundMusic != null)
+        {
+            audioSource.clip = backgroundMusic;
+            audioSource.loop = true;
+            audioSource.volume = 0.5f;
+            audioSource.Play();
+        }
     }
 
     public void StartLevel()
     {
-        ClientLostByImpatience = false; 
+        ClientLostByImpatience = false;
         levelRunning = true;
         StartCoroutine(SpawnClientsAtLevelStart());
     }
+
     public void SetClientLostByImpatience(bool value)
     {
         ClientLostByImpatience = value;
     }
+
+    public void ClientSatisfied()
+    {
+        satisfiedClients++;
+        Debug.Log($"Client satisfait. Clients satisfaits : {satisfiedClients} sur {globalTotalClients} au total.");
+        ShowSatisfactionCanvas();
+    }
+
+    private void ShowSatisfactionCanvas()
+    {
+        if (currentLevel % 5 == 0)
+        {
+            string stats = $"Total Clients: {globalTotalClients}\nSatisfied Clients: {satisfiedClients}";
+        }
+    }
+
     private IEnumerator SpawnClientsAtLevelStart()
     {
         int numberOfClientsToSpawn = currentLevel;
@@ -74,6 +117,9 @@ public class GameManager : MonoBehaviour
         GameObject newClient = Instantiate(clientPrefab, spawnPoint.position, Quaternion.identity);
         activeClients.Add(newClient);
 
+        globalTotalClients++;
+        Debug.Log($"Client spawné. Total global clients : {globalTotalClients}");
+
         Client clientScript = newClient.GetComponent<Client>();
         if (clientScript != null)
         {
@@ -85,8 +131,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
-
     private void RemoveClient(GameObject client)
     {
         if (activeClients.Contains(client))
@@ -95,12 +139,17 @@ public class GameManager : MonoBehaviour
             Destroy(client);
         }
 
+        Client clientScript = client.GetComponent<Client>();
+        if (clientScript != null && clientScript.IsSatisfied())
+        {
+            satisfiedClients++;
+        }
+
         if (activeClients.Count == 0 && levelRunning)
         {
             EndLevel();
         }
     }
-
 
     public void EndLevel()
     {
@@ -113,7 +162,6 @@ public class GameManager : MonoBehaviour
                 ImprovementManager.Instance.AddImprovementPoints(1);
             }
         }
-        
 
         PauseGame();
 
@@ -122,7 +170,29 @@ public class GameManager : MonoBehaviour
             uiManager.ShowImprovementMenu();
         }
 
-        StartCoroutine(WaitBeforeNextLevel(5f));
+        if (currentLevel >= 3 && !statsDisplayed)
+        {
+            ShowStats();
+        }
+        else
+        {
+            StartCoroutine(WaitBeforeNextLevel(5f));
+        }
+    }
+
+    private void ShowStats()
+    {
+        statsDisplayed = true;
+
+        if (statsCanvas != null)
+        {
+            statsCanvas.SetActive(true);
+        }
+
+        if (statsText != null)
+        {
+            statsText.text = $"Vous avez réussi à aider {satisfiedClients} personne(s) sur {globalTotalClients} clients au total.";
+        }
     }
 
     private IEnumerator WaitBeforeNextLevel(float delay)
@@ -130,6 +200,8 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(delay);
 
         currentLevel++;
+        satisfiedClients = 0; 
+        statsDisplayed = false;
         StartLevel();
     }
 
@@ -141,5 +213,10 @@ public class GameManager : MonoBehaviour
     public void ResumeGame()
     {
         Time.timeScale = 1f;
+    }
+
+    public void RetourMenu()
+    {
+        SceneManager.LoadScene("Menu");
     }
 }

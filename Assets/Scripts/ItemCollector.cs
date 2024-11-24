@@ -16,6 +16,8 @@ public class ItemCollector : MonoBehaviour
     private CrazyCart controls;
 
     public GameObject pickupParticlesPrefab;
+    public AudioClip pickupSound;
+    private AudioSource audioSource;
 
     void Awake()
     {
@@ -39,7 +41,9 @@ public class ItemCollector : MonoBehaviour
     void Start()
     {
         inventoryManager = FindObjectOfType<InventoryManager>();
+        audioSource = GetComponent<AudioSource>();
     }
+
 
     void Update()
     {
@@ -140,6 +144,12 @@ public class ItemCollector : MonoBehaviour
 
             inventoryManager.AddItem(itemToPickup.itemSO);
 
+            if (pickupSound != null && audioSource != null)
+            {
+                audioSource.volume = 1.5f; 
+                audioSource.PlayOneShot(pickupSound); 
+            }
+
             if (pickupParticlesPrefab != null)
             {
                 Instantiate(pickupParticlesPrefab, itemToPickup.transform.position, Quaternion.identity);
@@ -149,6 +159,8 @@ public class ItemCollector : MonoBehaviour
             nearbyItems.RemoveAt(0);
         }
     }
+
+
 
     void PickupCarton()
     {

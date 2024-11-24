@@ -44,9 +44,17 @@ public class ClientSpawner : MonoBehaviour
             GameObject clientPrefab = clientPrefabs[Random.Range(0, clientPrefabs.Count)];
             GameObject spawnedClient = Instantiate(clientPrefab, spawnPosition, Quaternion.identity);
 
+            // Récupérer le script Client
             Client clientScript = spawnedClient.GetComponent<Client>();
             if (clientScript != null)
             {
+                // Jouer le son spécifique au client
+                AudioClip clientSound = clientScript.spawnSound; // Utilisation du champ "spawnSound" du client
+                if (clientSound != null)
+                {
+                    AudioSource.PlayClipAtPoint(clientSound, spawnPosition); // Joue le son à la position de spawn du client
+                }
+
                 clientScript.destinations = new List<Transform>(destinations);
                 clientScript.OnDespawn += () => HandleClientDespawn(spawnedClient, spawnPosition);
                 activeClients.Add(spawnedClient);
