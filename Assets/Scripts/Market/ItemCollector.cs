@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 public class ItemCollector : MonoBehaviour
 {
     private InventoryManager inventoryManager;
-    private List<ItemData> nearbyItems = new List<ItemData>();
+    public List<ItemData> nearbyItems = new List<ItemData>();
     private Carton currentCarton;
     private Shelf nearbyShelf;
     private float interactionRange = 3f;
