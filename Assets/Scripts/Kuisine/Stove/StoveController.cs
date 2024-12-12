@@ -22,16 +22,24 @@ public class StoveController : MonoBehaviour
         {
             temperatureSlider.minValue = stove.minTemperature;
             temperatureSlider.maxValue = stove.maxTemperature;
-            temperatureSlider.value = stove.temperature;
+            temperatureSlider.value = 0; // Initialisez la température à 0
             temperatureSlider.onValueChanged.AddListener(UpdateTemperature);
+        }
+
+        if (stove != null)
+        {
+            stove.temperature = 0; // Assurez-vous que la température de départ est 0
         }
 
         if (temperatureParticles != null)
         {
             var mainModule = temperatureParticles.main;
-            mainModule.startSize = 0.5f;  
-            mainModule.startColor = Color.gray;  
+            mainModule.startSize = 0.5f;
+            mainModule.startColor = Color.gray;
         }
+
+        // Mettez à jour la température et l'état des particules dès le départ
+        UpdateTemperature(0);
     }
 
     void Update()
@@ -79,10 +87,8 @@ public class StoveController : MonoBehaviour
         if (temperatureParticles != null)
         {
             var mainModule = temperatureParticles.main;
-
             var emissionModule = temperatureParticles.emission;
 
-            // Pas de particules à 0°C
             if (temperature <= 0)
             {
                 emissionModule.rateOverTime = 0f;

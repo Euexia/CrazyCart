@@ -1,10 +1,16 @@
 using System.Collections.Generic;
+using Unity.PlasticSCM.Editor.WebApi;
 using UnityEngine;
 
 public class Book : MonoBehaviour
 {
-    public List<Recipe> recipes; 
+    public List<Recipe> recipes;
 
+
+    private void Start()
+    {
+        
+    }
     public void AddRecipe(Recipe newRecipe)
     {
         recipes.Add(newRecipe);
