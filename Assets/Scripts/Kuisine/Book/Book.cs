@@ -7,10 +7,6 @@ public class Book : MonoBehaviour
     public List<Recipe> recipes;
 
 
-    private void Start()
-    {
-        
-    }
     public void AddRecipe(Recipe newRecipe)
     {
         recipes.Add(newRecipe);
