@@ -18,6 +18,8 @@ MonoBehaviour:
   - shelfName: Etagere 1
     ingredients:
     - {fileID: 11400000, guid: a1951ef013c297c4f8d1f52bfddb3f5f, type: 2}
+    - {fileID: 11400000, guid: a1951ef013c297c4f8d1f52bfddb3f5f, type: 2}
+    - {fileID: 11400000, guid: a1951ef013c297c4f8d1f52bfddb3f5f, type: 2}
   - shelfName: Etagere 2
     ingredients: []
   - shelfName: Etagere 3

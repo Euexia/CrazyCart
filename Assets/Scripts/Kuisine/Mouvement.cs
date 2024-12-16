@@ -15,16 +15,21 @@ public class PlayerController : MonoBehaviour
 
     private float xRotation = 0f;
 
+    [Header("Contrôles")]
+    public bool canLook = true; // Contrôle le mouvement de la caméra
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         cameraTransform = Camera.main.transform;
-
     }
 
     void Update()
     {
-        RotatePlayer();
+        if (canLook)
+        {
+            RotatePlayer(); // Autorise la rotation uniquement si `canLook` est vrai
+        }
 
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
@@ -39,8 +44,8 @@ public class PlayerController : MonoBehaviour
 
     void MovePlayer()
     {
-        float moveX = Input.GetAxis("Horizontal"); 
-        float moveZ = Input.GetAxis("Vertical");  
+        float moveX = Input.GetAxis("Horizontal");
+        float moveZ = Input.GetAxis("Vertical");
 
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
         rb.MovePosition(rb.position + move * speed * Time.fixedDeltaTime);
@@ -54,8 +59,13 @@ public class PlayerController : MonoBehaviour
         transform.Rotate(Vector3.up * mouseX);
 
         xRotation -= mouseY;
-        xRotation = Mathf.Clamp(xRotation, -90f, 90f); 
+        xRotation = Mathf.Clamp(xRotation, -90f, 90f);
         cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+    }
+
+    public void LockCamera(bool lockCamera)
+    {
+        canLook = !lockCamera; // Active ou désactive la rotation de la caméra
     }
 
     private void OnCollisionEnter(Collision collision)

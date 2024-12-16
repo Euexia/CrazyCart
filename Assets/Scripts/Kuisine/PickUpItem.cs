@@ -21,7 +21,7 @@ public class PickUpObject : MonoBehaviour
     public float maxAngle = 45f;
     public Vector3 canvasOffset = new Vector3(0f, 1f, 0f);
 
-    private string currentAction = ""; // "pick" or "drop"
+    private string currentAction = ""; 
 
     void Start()
     {
@@ -98,7 +98,7 @@ public class PickUpObject : MonoBehaviour
         worldSpaceCanvas.SetActive(false);
     }
 
-    private void HandleHandSelection(string hand)
+    public void HandleHandSelection(string hand)
     {
         if (currentAction == "pick")
         {
@@ -117,23 +117,26 @@ public class PickUpObject : MonoBehaviour
             ItemData itemData = currentObject.GetComponent<ItemData>();
             if (itemData != null)
             {
+                // Vérifiez si l'icône n'est pas déjà assignée dans la main
                 if (hand == "left" && leftHandUI.sprite == null)
                 {
                     leftHandUI.sprite = itemData.itemSO.icon;
                     leftHandObject = currentObject;
+                    currentObject.SetActive(false); // Désactive l'objet dans le monde
                 }
                 else if (hand == "right" && rightHandUI.sprite == null)
                 {
                     rightHandUI.sprite = itemData.itemSO.icon;
                     rightHandObject = currentObject;
+                    currentObject.SetActive(false); // Désactive l'objet dans le monde
                 }
 
-                currentObject.SetActive(false); // Supprime l'objet de la scène
-                currentObject = null;
-                worldSpaceCanvas.SetActive(false);
+                currentObject = null; // Réinitialiser l'objet courant
+                worldSpaceCanvas.SetActive(false); // Masquer le canevas de l'objet
             }
         }
     }
+
 
     private void RemoveFromHand(string hand)
     {
