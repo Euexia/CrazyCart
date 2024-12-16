@@ -122,7 +122,33 @@ public class GameManager : MonoBehaviour
             uiManager.ShowImprovementMenu();
         }
 
+<<<<<<< Updated upstream
         StartCoroutine(WaitBeforeNextLevel(5f));
+=======
+        if (currentLevel >= 5 && !statsDisplayed)
+        {
+            ShowStats();
+        }
+        else
+        {
+            StartCoroutine(WaitBeforeNextLevel(5f));
+        }
+    }
+
+    private void ShowStats()
+    {
+        statsDisplayed = true;
+
+        if (statsCanvas != null)
+        {
+            statsCanvas.SetActive(true);
+        }
+
+        if (statsText != null)
+        {
+            statsText.text = $"Vous avez réussi ! ";
+        }
+>>>>>>> Stashed changes
     }
 
     private IEnumerator WaitBeforeNextLevel(float delay)

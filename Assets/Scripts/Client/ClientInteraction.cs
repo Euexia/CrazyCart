@@ -1,5 +1,3 @@
-
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 public class ClientInteraction : MonoBehaviour
@@ -15,7 +13,6 @@ public class ClientInteraction : MonoBehaviour
             if (hasItem)
             {
                 Debug.Log("Le joueur a satisfait la demande du client !");
-                // Logique pour confirmer la commande (ex: r?compense, message, etc.)
             }
             else
             {
