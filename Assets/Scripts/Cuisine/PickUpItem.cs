@@ -5,7 +5,8 @@ public class PickUpObject : MonoBehaviour
 {
     public Image leftHandUI;
     public Image rightHandUI;
-    public GameObject worldSpaceCanvas;
+    public GameObject worldSpaceCanvas;  // Canvas pour interaction contextuelle
+    public GameObject handsFullCanvas;  // Canvas pour signaler que les mains sont pleines
     public Button leftHandButton;
     public Button rightHandButton;
 
@@ -31,6 +32,7 @@ public class PickUpObject : MonoBehaviour
         containerLayer = LayerMask.NameToLayer("Container");
 
         worldSpaceCanvas.SetActive(false);
+        handsFullCanvas.SetActive(false);  // Assurez-vous que le canvas est désactivé au démarrage
     }
 
     void Update()
@@ -113,14 +115,11 @@ public class PickUpObject : MonoBehaviour
 
         if (currentAction == "pick")  // Si l'action est de ramasser un objet
         {
-            if (hand == "left" && leftHandObject == currentObject)
+            // Vérifie si les deux mains sont déjà occupées
+            if (leftHandObject != null && rightHandObject != null)
             {
-                Debug.LogWarning("L'objet est déjà dans la main gauche.");
-                return;
-            }
-            else if (hand == "right" && rightHandObject == currentObject)
-            {
-                Debug.LogWarning("L'objet est déjà dans la main droite.");
+                Debug.LogWarning("Les deux mains sont pleines !");
+                ShowHandsFullCanvas();
                 return;
             }
 
@@ -136,38 +135,88 @@ public class PickUpObject : MonoBehaviour
         }
     }
 
-    private void PlaceInHand(string hand)
+    private void ShowHandsFullCanvas()
     {
-        if (currentObject != null)
+        handsFullCanvas.SetActive(true);  // Active le canvas temporairement
+        Invoke("HideHandsFullCanvas", 2f);  // Le désactive après 2 secondes
+    }
+
+    private void HideHandsFullCanvas()
+    {
+        handsFullCanvas.SetActive(false);
+    }
+
+    public void AssignIngredientToHand(Ingredient ingredient, string hand)
+    {
+        if (hand == "left")
         {
-            IngredientHolder ingredientHolder = currentObject.GetComponent<IngredientHolder>();
-            if (ingredientHolder != null)
+            if (leftHandUI.sprite == null)  // Vérifie si la main gauche est vide
             {
-                Ingredient ingredient = ingredientHolder.ingredientData;
+                Debug.Log($"Assigning {ingredient.ingredientName} to left hand.");
+                leftHandUI.sprite = ingredient.ingredientSprite;
+                leftHandObject = currentObject;
 
-                if (hand == "left" && leftHandUI.sprite == null)  // Si la main gauche est vide
-                {
-                    Debug.Log("Placer l'objet dans la main gauche : " + ingredient.ingredientName);
-                    leftHandUI.sprite = ingredient.ingredientSprite;  // Afficher l'icône dans l'UI
-                    leftHandObject = currentObject;  // Référence à l'objet dans la main gauche
-                    currentObject.SetActive(false);  // Désactive l'objet dans le monde
-                    Debug.Log("Objet désactivé dans le monde : " + currentObject.name);
-                }
-                else if (hand == "right" && rightHandUI.sprite == null)  // Si la main droite est vide
-                {
-                    Debug.Log("Placer l'objet dans la main droite : " + ingredient.ingredientName);
-                    rightHandUI.sprite = ingredient.ingredientSprite;  // Afficher l'icône dans l'UI
-                    rightHandObject = currentObject;  // Référence à l'objet dans la main droite
-                    currentObject.SetActive(false);  // Désactive l'objet dans le monde
-                    Debug.Log("Objet désactivé dans le monde : " + currentObject.name);
-                }
+                HandleObjectDeactivation(currentObject); // Gère la désactivation de l'objet
+            }
+            else
+            {
+                Debug.LogWarning("La main gauche est déjà occupée.");
+            }
+        }
+        else if (hand == "right")
+        {
+            if (rightHandUI.sprite == null)  // Vérifie si la main droite est vide
+            {
+                Debug.Log($"Assigning {ingredient.ingredientName} to right hand.");
+                rightHandUI.sprite = ingredient.ingredientSprite;
+                rightHandObject = currentObject;
 
-                // Réinitialisation de l'objet courant et du canevas
-                currentObject = null;
-                worldSpaceCanvas.SetActive(false);
+                HandleObjectDeactivation(currentObject); // Gère la désactivation de l'objet
+            }
+            else
+            {
+                Debug.LogWarning("La main droite est déjà occupée.");
             }
         }
     }
+    private void HandleObjectDeactivation(GameObject obj)
+    {
+        if (obj == null)
+        {
+            Debug.LogWarning("L'objet à désactiver est null.");
+            return;
+        }
+
+        // Vérifie si l'objet fait partie d'une UI (Canvas)
+        if (obj.GetComponent<RectTransform>() != null) // Appartient à une interface utilisateur
+        {
+            Debug.Log("L'objet fait partie d'un Canvas UI, désactivation des éléments graphiques.");
+
+            // Désactive uniquement si c'est un objet récupérable, et pas le canvas "main remplie"
+            if (obj.CompareTag("PickUpItemUI")) // Taguez les objets récupérables dans l'UI
+            {
+                if (obj.TryGetComponent<Graphic>(out Graphic graphic))
+                {
+                    graphic.enabled = false; // Désactive uniquement le rendu de cet élément
+                }
+                else
+                {
+                    Debug.LogWarning("L'objet UI n'a pas de composant graphique.");
+                }
+            }
+            else
+            {
+                Debug.Log("Cet objet UI n'est pas un élément récupérable, aucune action prise.");
+            }
+        }
+        else // Objet de la scène 3D
+        {
+            Debug.Log("L'objet fait partie de la scène, désactivation avec SetActive.");
+            obj.SetActive(false); // Désactive l'objet complet
+        }
+    }
+
+
 
     private void RemoveFromHand(string hand)
     {
@@ -195,9 +244,74 @@ public class PickUpObject : MonoBehaviour
     {
         if (obj != null)
         {
-            Debug.Log("Placer l'objet dans le monde à la position : " + player.position + " + " + Vector3.up);
-            obj.transform.position = player.position + Vector3.up; // Place un peu au-dessus
-            obj.SetActive(true);  // Réactive l'objet dans le monde
+            // Vérifie si l'objet courant est un conteneur
+            if (currentObject != null && currentObject.layer == containerLayer)
+            {
+                Debug.Log("Placer l'objet dynamiquement au-dessus du conteneur détecté.");
+
+                // Récupère les colliders du conteneur et de l'objet
+                if (currentObject.TryGetComponent<Collider>(out Collider containerCollider))
+                {
+                    if (obj.TryGetComponent<Collider>(out Collider objectCollider))
+                    {
+                        // Calcule la position du sommet du conteneur
+                        float containerTopY = containerCollider.bounds.max.y; // Bord supérieur du conteneur
+                        float objectHeight = objectCollider.bounds.extents.y * 2; // Hauteur totale de l'objet
+                        float objectOffsetY = objectCollider.bounds.extents.y; // Décalage vertical pour que l'objet repose correctement
+
+                        // Place l'objet au sommet du conteneur
+                        obj.transform.position = new Vector3(
+                            containerCollider.bounds.center.x,   // Aligne l'objet horizontalement
+                            containerTopY + objectOffsetY + 0.05f, // Ajuste la hauteur
+                            containerCollider.bounds.center.z    // Aligne l'objet horizontalement
+                        );
+                    }
+                    else
+                    {
+                        Debug.LogWarning("L'objet à placer n'a pas de collider. Placement par défaut.");
+                        obj.transform.position = containerCollider.bounds.center + Vector3.up * (containerCollider.bounds.extents.y + 0.1f);
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("Le conteneur n'a pas de collider, utilisation de sa position.");
+                    obj.transform.position = currentObject.transform.position + Vector3.up * 0.1f;
+                }
+            }
+            else
+            {
+                Debug.Log("Aucun conteneur détecté, placer l'objet près du joueur.");
+
+                // Tente de positionner l'objet légèrement au-dessus du joueur
+                if (player.TryGetComponent<Collider>(out Collider playerCollider))
+                {
+                    if (obj.TryGetComponent<Collider>(out Collider objectCollider))
+                    {
+                        float playerTopY = playerCollider.bounds.max.y; // Bord supérieur du joueur
+                        float objectHeight = objectCollider.bounds.extents.y * 2; // Hauteur totale de l'objet
+                        float objectOffsetY = objectCollider.bounds.extents.y; // Décalage vertical
+
+                        // Place l'objet au sommet du joueur
+                        obj.transform.position = new Vector3(
+                            playerCollider.bounds.center.x,
+                            playerTopY + objectOffsetY + 0.1f,
+                            playerCollider.bounds.center.z
+                        );
+                    }
+                    else
+                    {
+                        obj.transform.position = playerCollider.bounds.center + Vector3.up * (playerCollider.bounds.extents.y + 0.1f);
+                    }
+                }
+                else
+                {
+                    // Si le joueur n'a pas de collider, utilise une valeur par défaut
+                    obj.transform.position = player.position + Vector3.up * 0.1f;
+                }
+            }
+
+            // Réactive l'objet dans le monde
+            obj.SetActive(true);
         }
         else
         {
@@ -205,45 +319,7 @@ public class PickUpObject : MonoBehaviour
         }
     }
 
-    public void AssignIngredientToHand(Ingredient ingredient, string hand)
-    {
-        if (hand == "left")
-        {
-            if (rightHandObject == currentObject)
-            {
-                Debug.Log("L'objet est dans la main droite, on le retire.");
-                RemoveFromHand("right");  // Retire l'objet de la main droite
-            }
 
-            if (leftHandUI.sprite == null)
-            {
-                Debug.Log($"Assigning {ingredient.ingredientName} to left hand.");
-                leftHandUI.sprite = ingredient.ingredientSprite;
-                leftHandObject = currentObject;
-            }
-            else
-            {
-                Debug.LogWarning("La main gauche est déjà occupée.");
-            }
-        }
-        else if (hand == "right")
-        {
-            if (leftHandObject == currentObject)
-            {
-                Debug.Log("L'objet est dans la main gauche, on le retire.");
-                RemoveFromHand("left");  // Retire l'objet de la main gauche
-            }
 
-            if (rightHandUI.sprite == null)
-            {
-                Debug.Log($"Assigning {ingredient.ingredientName} to right hand.");
-                rightHandUI.sprite = ingredient.ingredientSprite;
-                rightHandObject = currentObject;
-            }
-            else
-            {
-                Debug.LogWarning("La main droite est déjà occupée.");
-            }
-        }
-    }
+
 }
