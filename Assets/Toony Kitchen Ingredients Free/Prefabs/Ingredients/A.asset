@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98ccf5c3575dbba47a3fbe97faef80b6, type: 3}
   m_Name: A
   m_EditorClassIdentifier: 
-  ingredientName: 
-  description: 
-  ingredientSprite: {fileID: 0}
+  ingredientName: Aubergine
+  description: c'est violet
+  ingredientSprite: {fileID: 21300000, guid: 76c5a1f473e1cd64abd2bc691a8c9bed, type: 3}
