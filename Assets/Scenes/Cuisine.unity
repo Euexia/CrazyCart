@@ -7214,7 +7214,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 285735113}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 746233952}
+        m_TargetAssemblyTypeName: PickUpObject, Assembly-CSharp
+        m_MethodName: OnLeftHandButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &285735113
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9216,7 +9228,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 531023251}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 746233952}
+        m_TargetAssemblyTypeName: PickUpObject, Assembly-CSharp
+        m_MethodName: OnLeftHandButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &531023251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13712,7 +13736,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1662408661}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 746233952}
+        m_TargetAssemblyTypeName: PickUpObject, Assembly-CSharp
+        m_MethodName: OnRightHandButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1662408661
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -14314,7 +14350,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1723749338}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 746233952}
+        m_TargetAssemblyTypeName: PickUpObject, Assembly-CSharp
+        m_MethodName: OnRightHandButtonClick
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1723749338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -15117,7 +15165,7 @@ MonoBehaviour:
   rightHandButton: {fileID: 531023248}
   pickUpObjectScript: {fileID: 746233952}
   closeCanvasButton: {fileID: 1723749337}
-  mainCamera: {fileID: 0}
+  mainCamera: {fileID: 1505375188}
 --- !u!1 &2051217925
 GameObject:
   m_ObjectHideFlags: 0
