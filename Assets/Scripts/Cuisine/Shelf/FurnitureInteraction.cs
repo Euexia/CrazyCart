@@ -3,7 +3,8 @@ using UnityEngine;
 public class FurnitureInteraction : MonoBehaviour
 {
     public LayerMask furnitureLayer;
-    public Canvas shelvesCanvas;
+    public Canvas shelvesCanvas; 
+    public Canvas randomFurnitureCanvas; 
     public MonoBehaviour cameraMovementScript;
     public PlayerController playerController;
 
@@ -12,6 +13,11 @@ public class FurnitureInteraction : MonoBehaviour
         if (shelvesCanvas != null)
         {
             shelvesCanvas.gameObject.SetActive(false);
+        }
+
+        if (randomFurnitureCanvas != null)
+        {
+            randomFurnitureCanvas.gameObject.SetActive(false); 
         }
     }
 
@@ -30,7 +36,16 @@ public class FurnitureInteraction : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, furnitureLayer))
         {
-            OpenShelvesCanvas();
+            if (hit.collider.CompareTag("FurnitureRandom"))
+            {
+                Debug.Log("Meuble random sélectionné");
+                OpenRandomFurnitureCanvas();
+            }
+            else
+            {
+                Debug.Log("Meuble standard sélectionné");
+                OpenShelvesCanvas();
+            }
         }
     }
 
@@ -46,7 +61,26 @@ public class FurnitureInteraction : MonoBehaviour
         }
         if (playerController != null)
         {
-            playerController.LockCamera(true); // Bloque la rotation de la caméra
+            playerController.LockCamera(true);
+        }
+        Time.timeScale = 0;
+    }
+
+    // Méthode pour gérer l'ouverture d'un meuble random
+    void OpenRandomFurnitureCanvas()
+    {
+        // Logique spécifique à un meuble random
+        if (randomFurnitureCanvas != null)
+        {
+            randomFurnitureCanvas.gameObject.SetActive(true); // Active le canvas pour les meubles random
+        }
+        if (cameraMovementScript != null)
+        {
+            cameraMovementScript.enabled = false;
+        }
+        if (playerController != null)
+        {
+            playerController.LockCamera(true);
         }
         Time.timeScale = 0;
     }
@@ -63,7 +97,25 @@ public class FurnitureInteraction : MonoBehaviour
         }
         if (playerController != null)
         {
-            playerController.LockCamera(false); // Réactive la rotation de la caméra
+            playerController.LockCamera(false);
+        }
+        Time.timeScale = 1;
+    }
+
+    // Méthode pour fermer le canvas du meuble random
+    public void CloseRandomFurnitureCanvas()
+    {
+        if (randomFurnitureCanvas != null)
+        {
+            randomFurnitureCanvas.gameObject.SetActive(false);
+        }
+        if (cameraMovementScript != null)
+        {
+            cameraMovementScript.enabled = true;
+        }
+        if (playerController != null)
+        {
+            playerController.LockCamera(false);
         }
         Time.timeScale = 1;
     }
