@@ -3,10 +3,11 @@ using UnityEngine;
 public class FurnitureInteraction : MonoBehaviour
 {
     public LayerMask furnitureLayer;
-    public Canvas shelvesCanvas; 
-    public Canvas randomFurnitureCanvas; 
+    public Canvas shelvesCanvas;
+    public Canvas randomFurnitureCanvas;
     public MonoBehaviour cameraMovementScript;
     public PlayerController playerController;
+    public RandomFurnitureUI randomFurnitureUI; // Référence au script RandomFurnitureUI
 
     void Start()
     {
@@ -17,7 +18,7 @@ public class FurnitureInteraction : MonoBehaviour
 
         if (randomFurnitureCanvas != null)
         {
-            randomFurnitureCanvas.gameObject.SetActive(false); 
+            randomFurnitureCanvas.gameObject.SetActive(false);
         }
     }
 
@@ -67,12 +68,17 @@ public class FurnitureInteraction : MonoBehaviour
     }
 
     // Méthode pour gérer l'ouverture d'un meuble random
-    void OpenRandomFurnitureCanvas()
+    public void OpenRandomFurnitureCanvas()
     {
-        // Logique spécifique à un meuble random
+        if (randomFurnitureUI != null)
+        {
+            randomFurnitureUI.ResetAndGenerateShelves(); // Génération aléatoire
+        }
+
         if (randomFurnitureCanvas != null)
         {
-            randomFurnitureCanvas.gameObject.SetActive(true); // Active le canvas pour les meubles random
+            randomFurnitureCanvas.gameObject.SetActive(true); // Active le canvas
+            Debug.Log("Canvas du meuble random activé.");
         }
         if (cameraMovementScript != null)
         {
@@ -84,6 +90,8 @@ public class FurnitureInteraction : MonoBehaviour
         }
         Time.timeScale = 0;
     }
+
+
 
     public void CloseShelvesCanvas()
     {

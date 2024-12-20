@@ -3,7 +3,6 @@ using TMPro;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine;
-
 public class RandomFurnitureUI : MonoBehaviour
 {
     public GameObject shelfButtonPrefab;
@@ -21,7 +20,7 @@ public class RandomFurnitureUI : MonoBehaviour
     public List<Ingredient> allIngredients;
 
     private Ingredient currentIngredient;
-    private List<Furniture.Shelf> generatedShelves;
+    private List<Furniture.Shelf> generatedShelves = new List<Furniture.Shelf>();
 
     // Liste pour stocker les boutons d'étagère créés
     private List<GameObject> shelfButtons = new List<GameObject>();
@@ -29,16 +28,16 @@ public class RandomFurnitureUI : MonoBehaviour
     // Référence au Canvas
     public Canvas randomFurnitureCanvas;
 
+    public void OpenRandomFurnitureCanvas()
+    {
+        randomFurnitureCanvas.gameObject.SetActive(true); // Affiche le Canvas
+        ResetAndGenerateShelves(); // Appelle la méthode de réinitialisation et génération aléatoire
+    }
+
     void Start()
     {
-        // Initialisation des éléments
-        generatedShelves = new List<Furniture.Shelf>();
-
-        // Générer les étagères et ingrédients aléatoires
-        GenerateRandomShelves();
-
-        // Créer les boutons pour chaque étagère
-        CreateShelfButtons();
+        // Vérifications des assignations dans l'inspecteur
+        CheckInspectorReferences();
 
         // Désactiver le prefab des boutons d'étagère après usage
         if (shelfButtonPrefab != null)
@@ -59,15 +58,17 @@ public class RandomFurnitureUI : MonoBehaviour
 
     void GenerateRandomShelves()
     {
-        int shelfCount = Random.Range(1, 7);  // Nombre d'étagères aléatoire entre 1 et 6
+        int shelfCount = Random.Range(1, 6); // Nombre d'étagères aléatoire entre 1 et 6
         for (int i = 0; i < shelfCount; i++)
         {
-            Furniture.Shelf shelf = new Furniture.Shelf();
-            shelf.shelfName = "Shelf " + (i + 1);
-            shelf.ingredients = new List<Ingredient>();
+            Furniture.Shelf shelf = new Furniture.Shelf
+            {
+                shelfName = "Shelf " + (i + 1),
+                ingredients = new List<Ingredient>()
+            };
 
             // Nombre d'ingrédients aléatoire entre 1 et 6
-            int ingredientCount = Random.Range(1, 7);
+            int ingredientCount = Random.Range(1, 6);
 
             // Récupérer les ingrédients, autorisant les répétitions
             List<Ingredient> randomIngredients = GetRandomIngredients(ingredientCount);
@@ -225,24 +226,87 @@ public class RandomFurnitureUI : MonoBehaviour
         Debug.LogWarning("Impossible de trouver l'ingrédient à supprimer dans l'interface.");
     }
 
-    void CloseCanvas()
+    void OnEnable()
     {
-        if (randomFurnitureCanvas != null)
+        Debug.Log("OnEnable appelé : Vérification de l'état du Canvas...");
+
+        if (randomFurnitureCanvas == null)
         {
-            randomFurnitureCanvas.gameObject.SetActive(false);
+            Debug.LogError("Le Canvas randomFurnitureCanvas n'est pas assigné.");
+            return;
         }
 
+        // Vérifiez si le Canvas est activé avant d'appeler ResetAndGenerateShelves
+        if (randomFurnitureCanvas.gameObject.activeInHierarchy)
+        {
+            ResetAndGenerateShelves(); // Appelle la méthode pour réinitialiser et générer les étagères aléatoires
+        }
+        else
+        {
+            Debug.LogWarning("Le Canvas n'est pas actif. Assurez-vous qu'il est bien activé avant de générer les étagères.");
+        }
+
+        Debug.Log("Vérification terminée.");
+    }
+
+
+
+    public void ResetAndGenerateShelves()
+    {
+        Debug.Log("Réinitialisation des étagères et génération aléatoire...");
+
+        // Réinitialisation des étagères et des boutons
+        ResetShelves();
+
+        // Génération de nouvelles étagères de manière aléatoire
+        GenerateRandomShelves();
+
+        // Création des boutons d'étagère à partir des nouvelles étagères générées
+        CreateShelfButtons();
+
+        Debug.Log("Nouvelles étagères générées à l'ouverture du Canvas.");
+    }
+
+
+    void ResetShelves()
+    {
+        // Vérifier si les listes sont nulles
+        if (generatedShelves != null)
+        {
+            generatedShelves.Clear();
+        }
+
+        // Désactiver les anciens boutons d'étagère avant de régénérer
         foreach (var button in shelfButtons)
         {
             Destroy(button);
         }
         shelfButtons.Clear();
+    }
 
-        Time.timeScale = 1;
-
-        if (mainCamera != null)
+    // Vérification des références dans l'inspecteur
+    void CheckInspectorReferences()
+    {
+        if (shelfButtonPrefab == null)
         {
-            mainCamera.gameObject.SetActive(true);
+            Debug.LogError("Le prefab de bouton d'étagère n'est pas assigné.");
         }
+        if (shelfButtonsParent == null)
+        {
+            Debug.LogError("Le parent des boutons d'étagère n'est pas assigné.");
+        }
+        if (gridLayout == null)
+        {
+            Debug.LogError("Le GridLayout n'est pas assigné.");
+        }
+        if (itemDescriptionText == null)
+        {
+            Debug.LogError("Le TMP_Text de description d'élément n'est pas assigné.");
+        }
+    }
+
+    void CloseCanvas()
+    {
+        randomFurnitureCanvas.gameObject.SetActive(false);
     }
 }

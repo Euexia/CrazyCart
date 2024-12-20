@@ -34,6 +34,8 @@ public class PickUpObject : MonoBehaviour
     private GameObject selectedObject;
     public GameObject stove; // Déclarez la référence à la stove
 
+    private GameObject currentDraggedObject;
+
 
     void Start()
     {
@@ -45,6 +47,14 @@ public class PickUpObject : MonoBehaviour
 
         leftHandDefaultColor = leftHandUI.color;
         rightHandDefaultColor = rightHandUI.color;
+        if (stove == null)
+        {
+            stove = GameObject.FindWithTag("Stove");
+            if (stove == null)
+            {
+                Debug.LogError("Aucun objet avec le tag 'Stove' trouvé !");
+            }
+        }
     }
 
     void Update()
@@ -68,6 +78,14 @@ public class PickUpObject : MonoBehaviour
         if (Input.GetMouseButtonUp(0)) // Relâcher le clic
         {
             StopDragObject();
+        }
+        if (isDragging && selectedObject != null && stove != null)
+        {
+            if (Vector3.Distance(selectedObject.transform.position, stove.transform.position) < 0.5f)
+            {
+                PlaceObjectOnStove(selectedObject, stove);
+                StopDragObject(); // Arrêter le déplacement
+            }
         }
     }
 
@@ -228,33 +246,48 @@ public class PickUpObject : MonoBehaviour
 
     private void PlaceObjectInScene(GameObject obj)
     {
-        if (obj != null)
+        if (obj == null) return;
+
+        Vector3 newPosition;
+
+        if (currentObject != null && currentObject.layer == containerLayer)
         {
-            // Placer l'objet vraiment très près du joueur, juste devant lui et légèrement au-dessus
-            Vector3 newPosition = player.position + player.forward * 0.05f + Vector3.up * 0.2f; // Réduire la distance à 0.05f
-
-            if (obj.layer == containerLayer)
+            // Si un conteneur est détecté, placez l'objet dans ou au-dessus du conteneur
+            if (currentObject.TryGetComponent<Collider>(out Collider containerCollider))
             {
-                // Si l'objet est dans un container, on le place sur le container
-                if (currentObject != null && currentObject.layer == containerLayer)
-                {
-                    if (currentObject.TryGetComponent<Collider>(out Collider containerCollider))
-                    {
-                        float containerTopY = containerCollider.bounds.max.y;
-                        newPosition = new Vector3(
-                            containerCollider.bounds.center.x,
-                            containerTopY + 0.05f, // Placer légèrement au-dessus du container
-                            containerCollider.bounds.center.z
-                        );
-                    }
-                }
-            }
+                float containerTopY = containerCollider.bounds.max.y;
+                newPosition = new Vector3(
+                    containerCollider.bounds.center.x,
+                    containerTopY + 0.1f, // Position légèrement au-dessus du conteneur
+                    containerCollider.bounds.center.z
+                );
 
-            // Placer l'objet très près du joueur
-            obj.transform.position = newPosition;
-            obj.SetActive(true); // Assurer que l'objet est activé après placement
+                // Devenir enfant du conteneur pour conserver la hiérarchie
+                obj.transform.SetParent(currentObject.transform);
+            }
+            else
+            {
+                Debug.LogWarning("Le conteneur n'a pas de collider, placement par défaut.");
+                newPosition = currentObject.transform.position + Vector3.up * 0.1f;
+            }
         }
+        else
+        {
+            // Si aucun conteneur n'est détecté, placez l'objet près du joueur
+            newPosition = player.position + player.forward * 0.05f + Vector3.up * 0.2f;
+            obj.transform.SetParent(null); // Retirer l'objet de toute hiérarchie
+        }
+
+        // Positionner l'objet
+        obj.transform.position = newPosition;
+        obj.SetActive(true); // Réactiver l'objet après placement
+
+        Debug.Log($"{obj.name} placé dans la scène.");
     }
+
+
+
+
 
 
 
@@ -263,77 +296,139 @@ public class PickUpObject : MonoBehaviour
 
     private void StartDragObject()
     {
-        // Détecter si un objet est sous le curseur pour le déplacer
-        RaycastHit hit;
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, 1 << containerLayer))
         {
-            if (hit.collider != null && hit.collider.gameObject.layer == containerLayer)
-            {
-                selectedObject = hit.collider.gameObject;
-                isDragging = true;
+            selectedObject = hit.collider.gameObject;
+            currentDraggedObject = selectedObject;
+            isDragging = true;
 
-                // Calculer l'offset entre la souris et l'objet sélectionné
-                offset = selectedObject.transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            }
+            // Calculer l'offset
+            Vector3 mousePosition = Input.mousePosition;
+            mousePosition.z = Vector3.Distance(Camera.main.transform.position, selectedObject.transform.position);
+            offset = selectedObject.transform.position - Camera.main.ScreenToWorldPoint(mousePosition);
+
+            Debug.Log($"Objet sélectionné pour drag : {selectedObject.name}");
+        }
+        else
+        {
+            Debug.LogWarning("Aucun objet sélectionnable détecté !");
         }
     }
+
+
+
 
     private void StopDragObject()
     {
-        // Arrêter le déplacement
-        isDragging = false;
-        selectedObject = null;
-
-        // Vérifier si l'objet est sur la stove et le placer au-dessus si nécessaire
-        if (selectedObject != null && selectedObject.CompareTag("Container")) // Ensure it's a container
+        if (currentDraggedObject == null)
         {
-            // Placer l'objet au-dessus du poêle
-            PlaceObjectOnStove(selectedObject, stove);
+            Debug.LogWarning("Aucun objet en cours de déplacement.");
+            return;
         }
+
+        // Vérifier si l'objet est suffisamment proche du poêle
+        if (stove != null && Vector3.Distance(currentDraggedObject.transform.position, stove.transform.position) < 0.5f)
+        {
+            PlaceObjectOnStove(currentDraggedObject, stove);
+        }
+        else
+        {
+            Debug.Log("Objet relâché en dehors du poêle.");
+        }
+
+        currentDraggedObject = null; // Réinitialisez après placement
+        isDragging = false; // Réinitialiser l'état de drag
     }
 
+    
 
 
+        GameObject GetStove()
+    {
+        // Exemples d'approches :
+        // Utilisez un raycast ou un déclencheur pour détecter le poêle
+        return GameObject.FindWithTag("Stove"); // Ou une autre méthode de récupération.
+    }
     private void OnTriggerEnter(Collider other)
     {
-        // Vérifiez si l'objet entre en contact avec le poêle
-        if (other.CompareTag("Stove")) // Assurez-vous que le poêle est étiqueté avec "Stove"
+        if (other.CompareTag("Container"))
         {
-            // Désactivez le drag de l'objet
-            isDragging = false;
-            selectedObject = null;
+            Debug.Log($"Un conteneur a touché : {other.name}");
 
-            // Assignez la stove à la variable stove
-            stove = other.gameObject;
-
-            // Placez l'objet sur le poêle
-            PlaceObjectOnStove(currentObject, stove);
-        }
-    }
-
-
-
-    private void PlaceObjectOnStove(GameObject obj, GameObject stove)
-    {
-        if (obj != null && stove != null)
-        {
-            Collider stoveCol = stove.GetComponent<Collider>();
-            if (stoveCol != null)
+            // Si l'objet en collision avec le conteneur est un objet que nous pouvons mettre dedans
+            if (currentObject != null && currentObject.layer == pickUpLayer)
             {
-                // Get the position above the stove
-                Vector3 stovePosition = stoveCol.bounds.center;
-                float stoveTopY = stoveCol.bounds.max.y;
-                float objOffsetY = obj.GetComponent<Collider>().bounds.extents.y;
-
-                // Position the object just above the stove
-                obj.transform.position = new Vector3(stovePosition.x, stoveTopY + objOffsetY + 0.05f, stovePosition.z);
-                obj.transform.SetParent(stove.transform); // Set the stove as the parent of the container
+                PlaceObjectInContainer(currentObject, other.gameObject);
             }
         }
+        else
+        {
+            Debug.Log($"Collision ignorée avec : {other.name}");
+        }
     }
 
+
+    private void PlaceObjectInContainer(GameObject obj, GameObject container)
+    {
+        if (obj == null || container == null)
+        {
+            Debug.LogError("Objet ou conteneur manquant !");
+            return;
+        }
+
+        // Utiliser la méthode générique avec un offset spécifique pour le conteneur
+        PlaceObject(obj, container, 0.1f); // Offset de 0.1 pour le placement au-dessus du conteneur
+    }
+
+
+
+
+    public void PlaceObjectOnStove(GameObject obj, GameObject stove)
+    {
+        if (obj == null || stove == null)
+        {
+            Debug.LogError("Objet ou poêle manquant !");
+            return;
+        }
+
+        // Utiliser la méthode générique avec un offset spécifique pour le poêle
+        PlaceObject(obj, stove, 0.1f); // Offset de 0.3 pour le placement au-dessus du poêle
+    }
+
+
+    private void PlaceObject(GameObject obj, GameObject parent, float yOffset = 0.1f)
+    {
+        if (obj == null || parent == null)
+        {
+            Debug.LogError("Objet ou parent manquant !");
+            return;
+        }
+
+        // Vérifier si le parent a un collider pour ajuster la position
+        Collider parentCollider = parent.GetComponent<Collider>();
+        if (parentCollider != null)
+        {
+            // Calculer la position pour être juste au-dessus du parent
+            Vector3 parentTopPosition = parentCollider.bounds.max;
+            Vector3 newPosition = new Vector3(
+                parentCollider.bounds.center.x,
+                parentTopPosition.y + yOffset,
+                parentCollider.bounds.center.z
+            );
+
+            obj.transform.position = newPosition;
+        }
+        else
+        {
+            Debug.LogWarning("Le parent n'a pas de collider, position par défaut appliquée.");
+            obj.transform.position = parent.transform.position + Vector3.up * yOffset;
+        }
+
+        // Définir le parent comme transform.parent de l'objet
+        obj.transform.SetParent(parent.transform);
+        Debug.Log($"{obj.name} placé sur {parent.name}.");
+    }
 
 
 }
