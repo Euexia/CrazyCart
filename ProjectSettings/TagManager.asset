@@ -12,6 +12,8 @@ TagManager:
   - Ground
   - FxTemporaire
   - FurnitureRandom
+  - Stove
+  - Container
   layers:
   - Default
   - TransparentFX

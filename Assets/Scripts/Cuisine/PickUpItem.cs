@@ -1,12 +1,16 @@
-using UnityEngine;
+using TMPro;
 using UnityEngine.UI;
+using UnityEngine;
 
 public class PickUpObject : MonoBehaviour
 {
     public Image leftHandUI;
     public Image rightHandUI;
-    public GameObject worldSpaceCanvas;  // Canvas pour interaction contextuelle
-    public GameObject handsFullCanvas;  // Canvas pour signaler que les mains sont pleines
+    private Color leftHandDefaultColor;
+    private Color rightHandDefaultColor;
+
+    public GameObject worldSpaceCanvas;
+    public GameObject handsFullCanvas;
     public Button leftHandButton;
     public Button rightHandButton;
 
@@ -24,7 +28,12 @@ public class PickUpObject : MonoBehaviour
 
     private string currentAction = "";
 
-    private Ingredient currentIngredient = null;
+    private bool isDragging = false;  // Pour savoir si l'objet est en train d'être déplacé
+    private Vector3 offset;           // Offset pour garder la position relative de l'objet pendant le déplacement
+    private Collider stoveCollider;
+    private GameObject selectedObject;
+    public GameObject stove; // Déclarez la référence à la stove
+
 
     void Start()
     {
@@ -32,18 +41,40 @@ public class PickUpObject : MonoBehaviour
         containerLayer = LayerMask.NameToLayer("Container");
 
         worldSpaceCanvas.SetActive(false);
-        handsFullCanvas.SetActive(false);  // Assurez-vous que le canvas est désactivé au démarrage
+        handsFullCanvas.SetActive(false);
+
+        leftHandDefaultColor = leftHandUI.color;
+        rightHandDefaultColor = rightHandUI.color;
     }
 
     void Update()
     {
         DetectObjectOrContainerInProximity();
+
+        if (isDragging && selectedObject != null)
+        {
+            // Déplacer l'objet en fonction de la position de la souris
+            Vector3 mousePosition = Input.mousePosition;
+            mousePosition.z = 10f;  // Ajuster la distance pour le raycast
+            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            selectedObject.transform.position = worldPosition - offset;
+        }
+
+        // Vérifier le clic gauche pour commencer ou arrêter le déplacement
+        if (Input.GetMouseButtonDown(0)) // Clic gauche
+        {
+            StartDragObject();
+        }
+        if (Input.GetMouseButtonUp(0)) // Relâcher le clic
+        {
+            StopDragObject();
+        }
     }
 
     private void DetectObjectOrContainerInProximity()
     {
+        // Détecter les objets dans la zone de proximité du joueur
         Collider[] hitColliders = Physics.OverlapSphere(player.position, detectionRadius, (1 << pickUpLayer) | (1 << containerLayer));
-
         GameObject closestObject = null;
         float closestDistance = detectionRadius;
 
@@ -111,34 +142,26 @@ public class PickUpObject : MonoBehaviour
 
     public void HandleHandSelection(string hand)
     {
-        Debug.Log("Sélection de la main: " + hand);
-
-        if (currentAction == "pick")  // Si l'action est de ramasser un objet
+        if (currentAction == "pick")
         {
-            // Vérifie si les deux mains sont déjà occupées
             if (leftHandObject != null && rightHandObject != null)
             {
-                Debug.LogWarning("Les deux mains sont pleines !");
                 ShowHandsFullCanvas();
                 return;
             }
 
             AssignIngredientToHand(currentObject.GetComponent<IngredientHolder>().ingredientData, hand);
         }
-        else if (currentAction == "drop")  // Si l'action est de déposer un objet
+        else if (currentAction == "drop")
         {
             RemoveFromHand(hand);
-        }
-        else
-        {
-            Debug.LogWarning("Action inconnue : " + currentAction);
         }
     }
 
     private void ShowHandsFullCanvas()
     {
-        handsFullCanvas.SetActive(true);  // Active le canvas temporairement
-        Invoke("HideHandsFullCanvas", 2f);  // Le désactive après 2 secondes
+        handsFullCanvas.SetActive(true);
+        Invoke("HideHandsFullCanvas", 2f);
     }
 
     private void HideHandsFullCanvas()
@@ -148,95 +171,58 @@ public class PickUpObject : MonoBehaviour
 
     public void AssignIngredientToHand(Ingredient ingredient, string hand)
     {
-        if (hand == "left")
+        if (hand == "left" && leftHandUI.sprite == null)
         {
-            if (leftHandUI.sprite == null)  // Vérifie si la main gauche est vide
-            {
-                Debug.Log($"Assigning {ingredient.ingredientName} to left hand.");
-                leftHandUI.sprite = ingredient.ingredientSprite;
-                leftHandObject = currentObject;
-
-                HandleObjectDeactivation(currentObject); // Gère la désactivation de l'objet
-            }
-            else
-            {
-                Debug.LogWarning("La main gauche est déjà occupée.");
-            }
+            leftHandUI.sprite = ingredient.ingredientSprite;
+            leftHandUI.color = Color.white;
+            leftHandObject = currentObject;
+            HandleObjectDeactivation(currentObject);
         }
-        else if (hand == "right")
+        else if (hand == "right" && rightHandUI.sprite == null)
         {
-            if (rightHandUI.sprite == null)  // Vérifie si la main droite est vide
-            {
-                Debug.Log($"Assigning {ingredient.ingredientName} to right hand.");
-                rightHandUI.sprite = ingredient.ingredientSprite;
-                rightHandObject = currentObject;
-
-                HandleObjectDeactivation(currentObject); // Gère la désactivation de l'objet
-            }
-            else
-            {
-                Debug.LogWarning("La main droite est déjà occupée.");
-            }
+            rightHandUI.sprite = ingredient.ingredientSprite;
+            rightHandUI.color = Color.white;
+            rightHandObject = currentObject;
+            HandleObjectDeactivation(currentObject);
+        }
+        else
+        {
+            ShowHandsFullCanvas();
         }
     }
+
     private void HandleObjectDeactivation(GameObject obj)
     {
-        if (obj == null)
-        {
-            Debug.LogWarning("L'objet à désactiver est null.");
-            return;
-        }
+        if (obj == null) return;
 
-        // Vérifie si l'objet fait partie d'une UI (Canvas)
-        if (obj.GetComponent<RectTransform>() != null) // Appartient à une interface utilisateur
+        if (obj.GetComponent<RectTransform>() != null)
         {
-            Debug.Log("L'objet fait partie d'un Canvas UI, désactivation des éléments graphiques.");
-
-            // Désactive uniquement si c'est un objet récupérable, et pas le canvas "main remplie"
-            if (obj.CompareTag("PickUpItemUI")) // Taguez les objets récupérables dans l'UI
+            if (obj.CompareTag("PickUpItemUI") && obj.TryGetComponent<Graphic>(out Graphic graphic))
             {
-                if (obj.TryGetComponent<Graphic>(out Graphic graphic))
-                {
-                    graphic.enabled = false; // Désactive uniquement le rendu de cet élément
-                }
-                else
-                {
-                    Debug.LogWarning("L'objet UI n'a pas de composant graphique.");
-                }
-            }
-            else
-            {
-                Debug.Log("Cet objet UI n'est pas un élément récupérable, aucune action prise.");
+                graphic.enabled = false;
             }
         }
-        else // Objet de la scène 3D
+        else
         {
-            Debug.Log("L'objet fait partie de la scène, désactivation avec SetActive.");
-            obj.SetActive(false); // Désactive l'objet complet
+            obj.SetActive(false);
         }
     }
-
-
 
     private void RemoveFromHand(string hand)
     {
         if (hand == "left" && leftHandObject != null)
         {
-            Debug.Log("Retirer l'objet de la main gauche.");
             PlaceObjectInScene(leftHandObject);
             leftHandUI.sprite = null;
+            leftHandUI.color = leftHandDefaultColor; // Remet la couleur par défaut
             leftHandObject = null;
         }
         else if (hand == "right" && rightHandObject != null)
         {
-            Debug.Log("Retirer l'objet de la main droite.");
             PlaceObjectInScene(rightHandObject);
             rightHandUI.sprite = null;
+            rightHandUI.color = rightHandDefaultColor; // Remet la couleur par défaut
             rightHandObject = null;
-        }
-        else
-        {
-            Debug.LogWarning("Aucun objet à retirer dans cette main.");
         }
     }
 
@@ -244,82 +230,113 @@ public class PickUpObject : MonoBehaviour
     {
         if (obj != null)
         {
-            // Vérifie si l'objet courant est un conteneur
-            if (currentObject != null && currentObject.layer == containerLayer)
+            // Placer l'objet vraiment très près du joueur, juste devant lui et légèrement au-dessus
+            Vector3 newPosition = player.position + player.forward * 0.05f + Vector3.up * 0.2f; // Réduire la distance à 0.05f
+
+            if (obj.layer == containerLayer)
             {
-                Debug.Log("Placer l'objet dynamiquement au-dessus du conteneur détecté.");
-
-                // Récupère les colliders du conteneur et de l'objet
-                if (currentObject.TryGetComponent<Collider>(out Collider containerCollider))
+                // Si l'objet est dans un container, on le place sur le container
+                if (currentObject != null && currentObject.layer == containerLayer)
                 {
-                    if (obj.TryGetComponent<Collider>(out Collider objectCollider))
+                    if (currentObject.TryGetComponent<Collider>(out Collider containerCollider))
                     {
-                        // Calcule la position du sommet du conteneur
-                        float containerTopY = containerCollider.bounds.max.y; // Bord supérieur du conteneur
-                        float objectHeight = objectCollider.bounds.extents.y * 2; // Hauteur totale de l'objet
-                        float objectOffsetY = objectCollider.bounds.extents.y; // Décalage vertical pour que l'objet repose correctement
-
-                        // Place l'objet au sommet du conteneur
-                        obj.transform.position = new Vector3(
-                            containerCollider.bounds.center.x,   // Aligne l'objet horizontalement
-                            containerTopY + objectOffsetY + 0.05f, // Ajuste la hauteur
-                            containerCollider.bounds.center.z    // Aligne l'objet horizontalement
+                        float containerTopY = containerCollider.bounds.max.y;
+                        newPosition = new Vector3(
+                            containerCollider.bounds.center.x,
+                            containerTopY + 0.05f, // Placer légèrement au-dessus du container
+                            containerCollider.bounds.center.z
                         );
                     }
-                    else
-                    {
-                        Debug.LogWarning("L'objet à placer n'a pas de collider. Placement par défaut.");
-                        obj.transform.position = containerCollider.bounds.center + Vector3.up * (containerCollider.bounds.extents.y + 0.1f);
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning("Le conteneur n'a pas de collider, utilisation de sa position.");
-                    obj.transform.position = currentObject.transform.position + Vector3.up * 0.1f;
-                }
-            }
-            else
-            {
-                Debug.Log("Aucun conteneur détecté, placer l'objet près du joueur.");
-
-                // Tente de positionner l'objet légèrement au-dessus du joueur
-                if (player.TryGetComponent<Collider>(out Collider playerCollider))
-                {
-                    if (obj.TryGetComponent<Collider>(out Collider objectCollider))
-                    {
-                        float playerTopY = playerCollider.bounds.max.y; // Bord supérieur du joueur
-                        float objectHeight = objectCollider.bounds.extents.y * 2; // Hauteur totale de l'objet
-                        float objectOffsetY = objectCollider.bounds.extents.y; // Décalage vertical
-
-                        // Place l'objet au sommet du joueur
-                        obj.transform.position = new Vector3(
-                            playerCollider.bounds.center.x,
-                            playerTopY + objectOffsetY + 0.1f,
-                            playerCollider.bounds.center.z
-                        );
-                    }
-                    else
-                    {
-                        obj.transform.position = playerCollider.bounds.center + Vector3.up * (playerCollider.bounds.extents.y + 0.1f);
-                    }
-                }
-                else
-                {
-                    // Si le joueur n'a pas de collider, utilise une valeur par défaut
-                    obj.transform.position = player.position + Vector3.up * 0.1f;
                 }
             }
 
-            // Réactive l'objet dans le monde
-            obj.SetActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("L'objet à placer dans le monde est null.");
+            // Placer l'objet très près du joueur
+            obj.transform.position = newPosition;
+            obj.SetActive(true); // Assurer que l'objet est activé après placement
         }
     }
 
 
 
 
+
+
+    private void StartDragObject()
+    {
+        // Détecter si un objet est sous le curseur pour le déplacer
+        RaycastHit hit;
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out hit))
+        {
+            if (hit.collider != null && hit.collider.gameObject.layer == containerLayer)
+            {
+                selectedObject = hit.collider.gameObject;
+                isDragging = true;
+
+                // Calculer l'offset entre la souris et l'objet sélectionné
+                offset = selectedObject.transform.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            }
+        }
+    }
+
+    private void StopDragObject()
+    {
+        // Arrêter le déplacement
+        isDragging = false;
+        selectedObject = null;
+
+        // Vérifier si l'objet est sur la stove et le placer au-dessus si nécessaire
+        if (selectedObject != null && selectedObject.CompareTag("Container")) // Ensure it's a container
+        {
+            // Placer l'objet au-dessus du poêle
+            PlaceObjectOnStove(selectedObject, stove);
+        }
+    }
+
+
+
+    private void OnTriggerEnter(Collider other)
+    {
+        // Vérifiez si l'objet entre en contact avec le poêle
+        if (other.CompareTag("Stove")) // Assurez-vous que le poêle est étiqueté avec "Stove"
+        {
+            // Désactivez le drag de l'objet
+            isDragging = false;
+            selectedObject = null;
+
+            // Assignez la stove à la variable stove
+            stove = other.gameObject;
+
+            // Placez l'objet sur le poêle
+            PlaceObjectOnStove(currentObject, stove);
+        }
+    }
+
+
+
+    private void PlaceObjectOnStove(GameObject obj, GameObject stove)
+    {
+        if (obj != null && stove != null)
+        {
+            Collider stoveCol = stove.GetComponent<Collider>();
+            if (stoveCol != null)
+            {
+                // Get the position above the stove
+                Vector3 stovePosition = stoveCol.bounds.center;
+                float stoveTopY = stoveCol.bounds.max.y;
+                float objOffsetY = obj.GetComponent<Collider>().bounds.extents.y;
+
+                // Position the object just above the stove
+                obj.transform.position = new Vector3(stovePosition.x, stoveTopY + objOffsetY + 0.05f, stovePosition.z);
+                obj.transform.SetParent(stove.transform); // Set the stove as the parent of the container
+            }
+        }
+    }
+
+
+
 }
+
+
+

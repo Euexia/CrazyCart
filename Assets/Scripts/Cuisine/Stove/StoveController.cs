@@ -12,11 +12,14 @@ public class StoveController : MonoBehaviour
     public Transform player;
     private Stove stove;
     private bool isCanvasActive = false;
+    private Collider stoveCollider;
 
     void Start()
     {
         worldSpaceCanvas.SetActive(false);
         stove = GetComponent<Stove>();
+        stoveCollider = stove.GetComponent<Collider>();
+
 
         if (temperatureSlider != null && stove != null)
         {
@@ -37,6 +40,7 @@ public class StoveController : MonoBehaviour
             mainModule.startSize = 0.5f;
             mainModule.startColor = Color.gray;
         }
+       
 
         // Mettez à jour la température et l'état des particules dès le départ
         UpdateTemperature(0);
@@ -54,7 +58,11 @@ public class StoveController : MonoBehaviour
         {
             DeactivateCanvas();
         }
+
+        // Call the DetectContainerOnStove method to check if a container is placed
+        DetectContainerOnStove();
     }
+
 
     private void ActivateCanvas()
     {
@@ -102,4 +110,32 @@ public class StoveController : MonoBehaviour
             mainModule.startColor = particleColor;
         }
     }
+
+    public void PlaceContainerOnStove(GameObject container)
+    {
+        if (container != null)
+        {
+            // Placer l'objet au-dessus du poêle
+            container.transform.position = transform.position + Vector3.up * 0.5f; // Ajustez la position
+            container.transform.SetParent(transform); // Associez le conteneur au poêle
+        }
+    }
+
+
+    private void DetectContainerOnStove()
+    {
+        // Détecte tous les objets dans la zone de la stove
+        Collider[] colliders = Physics.OverlapBox(stoveCollider.bounds.center, stoveCollider.bounds.extents);
+
+        foreach (var collider in colliders)
+        {
+            // Vérifie si l'objet est un conteneur et s'il n'est pas un enfant du poêle
+            if (collider.CompareTag("Container") && collider.transform.parent != stove.transform)
+            {
+                Debug.Log("Un conteneur est sur le poêle : " + collider.gameObject.name);
+                // Logique de placement de conteneur ou autre traitement
+            }
+        }
+    }
+
 }

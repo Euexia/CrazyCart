@@ -31,21 +31,41 @@ public class FurnitureUI : MonoBehaviour
 
     void CreateShelfButtons()
     {
+        // Désactive ou détruit le prefab inutile déjà dans le parent
+        if (shelfButtonPrefab.transform.parent == shelfButtonsParent)
+        {
+            shelfButtonPrefab.SetActive(false); // Cache le prefab s'il est actif
+        }
+
+        // Supprime les anciens boutons d'étagère s'ils existent
+        foreach (Transform child in shelfButtonsParent)
+        {
+            if (child.gameObject != shelfButtonPrefab) // Ignore le prefab modèle
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        // Crée les nouveaux boutons dynamiquement
         foreach (var shelf in furnitureData.shelves)
         {
             GameObject button = Instantiate(shelfButtonPrefab, shelfButtonsParent);
+            button.SetActive(true); // Active le bouton après instanciation
             button.GetComponentInChildren<TMP_Text>().text = shelf.shelfName;
             button.GetComponent<Button>().onClick.AddListener(() => ShowShelfItems(shelf));
         }
     }
 
+
     void ShowShelfItems(Furniture.Shelf shelf)
     {
+        // Supprime les anciens éléments de la grille
         foreach (Transform child in gridLayout.transform)
         {
             Destroy(child.gameObject);
         }
 
+        // Crée une nouvelle image pour chaque ingrédient
         foreach (var ingredient in shelf.ingredients)
         {
             if (ingredient != null)
@@ -53,21 +73,40 @@ public class FurnitureUI : MonoBehaviour
                 GameObject itemUI = new GameObject("IngredientImage");
                 itemUI.transform.SetParent(gridLayout.transform);
 
+                // Ajoute une image à l'objet
                 Image imageComponent = itemUI.AddComponent<Image>();
                 imageComponent.sprite = ingredient.ingredientSprite;
 
+                // Ajoute un EventTrigger pour interagir avec l'élément
                 EventTrigger eventTrigger = itemUI.AddComponent<EventTrigger>();
 
+                // Événement PointerClick (clic)
                 EventTrigger.Entry entryPointerClick = new EventTrigger.Entry
                 {
                     eventID = EventTriggerType.PointerClick
                 };
                 entryPointerClick.callback.AddListener((data) => OnIngredientClick(ingredient));
-
                 eventTrigger.triggers.Add(entryPointerClick);
+
+                // Événement PointerEnter (passage de la souris)
+                EventTrigger.Entry entryPointerEnter = new EventTrigger.Entry
+                {
+                    eventID = EventTriggerType.PointerEnter
+                };
+                entryPointerEnter.callback.AddListener((data) => OnPointerEnter(ingredient));
+                eventTrigger.triggers.Add(entryPointerEnter);
+
+                // Événement PointerExit (retrait de la souris)
+                EventTrigger.Entry entryPointerExit = new EventTrigger.Entry
+                {
+                    eventID = EventTriggerType.PointerExit
+                };
+                entryPointerExit.callback.AddListener((data) => OnPointerExit());
+                eventTrigger.triggers.Add(entryPointerExit);
             }
         }
     }
+
 
     void OnIngredientClick(Ingredient ingredient)
     {
@@ -127,11 +166,32 @@ public class FurnitureUI : MonoBehaviour
 
     void CloseCanvas()
     {
-        this.gameObject.SetActive(false);
-        Time.timeScale = 1;
-        if (mainCamera != null)
+        this.gameObject.SetActive(false);  // Cache l'UI sans la désactiver
+        Time.timeScale = 1;  // Assurez-vous que le temps est rétabli à la normale
+
+        // Assurez-vous que la caméra reste activée
+        if (mainCamera != null && !mainCamera.gameObject.activeSelf)
         {
             mainCamera.gameObject.SetActive(true);
         }
     }
+
+    void OnPointerEnter(Ingredient ingredient)
+    {
+        if (ingredient != null && itemDescriptionText != null)
+        {
+            itemDescriptionText.text = ingredient.description;
+            Debug.Log($"Description affichée : {ingredient.description}");
+        }
+    }
+
+    void OnPointerExit()
+    {
+        if (itemDescriptionText != null)
+        {
+            itemDescriptionText.text = "";
+            Debug.Log("Description effacée.");
+        }
+    }
+
 }

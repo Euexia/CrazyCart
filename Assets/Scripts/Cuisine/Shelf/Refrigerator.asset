@@ -20,8 +20,11 @@ MonoBehaviour:
     - {fileID: 11400000, guid: a1951ef013c297c4f8d1f52bfddb3f5f, type: 2}
     - {fileID: 11400000, guid: a1951ef013c297c4f8d1f52bfddb3f5f, type: 2}
     - {fileID: 11400000, guid: a1951ef013c297c4f8d1f52bfddb3f5f, type: 2}
+    - {fileID: 11400000, guid: a1951ef013c297c4f8d1f52bfddb3f5f, type: 2}
   - shelfName: Etagere 2
-    ingredients: []
+    ingredients:
+    - {fileID: 11400000, guid: 4fa5b46e5ba4b7e46b6222b9a0b64b0d, type: 2}
+    - {fileID: 11400000, guid: 4fa5b46e5ba4b7e46b6222b9a0b64b0d, type: 2}
   - shelfName: Etagere 3
     ingredients:
     - {fileID: 11400000, guid: a1951ef013c297c4f8d1f52bfddb3f5f, type: 2}

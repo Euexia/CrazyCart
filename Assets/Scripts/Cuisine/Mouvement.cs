@@ -6,17 +6,14 @@ public class PlayerController : MonoBehaviour
     public float speed = 5f;
     public float sensitivity = 2f;
 
-    [Header("Saut")]
-    public float jumpForce = 5f;
-    public bool isGrounded;
-
     private Rigidbody rb;
     private Transform cameraTransform;
 
     private float xRotation = 0f;
 
     [Header("Contrôles")]
-    public bool canLook = true; // Contrôle le mouvement de la caméra
+    public bool canLook = true;
+    private bool isRotating = false;
 
     void Start()
     {
@@ -28,12 +25,8 @@ public class PlayerController : MonoBehaviour
     {
         if (canLook)
         {
-            RotatePlayer(); // Autorise la rotation uniquement si `canLook` est vrai
-        }
-
-        if (Input.GetButtonDown("Jump") && isGrounded)
-        {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            RotatePlayer();
+            UpdatePlayerRotationWithKeys();
         }
     }
 
@@ -46,6 +39,11 @@ public class PlayerController : MonoBehaviour
     {
         float moveX = Input.GetAxis("Horizontal");
         float moveZ = Input.GetAxis("Vertical");
+
+        if (isRotating)
+        {
+            moveX = 0f;
+        }
 
         Vector3 move = transform.right * moveX + transform.forward * moveZ;
         rb.MovePosition(rb.position + move * speed * Time.fixedDeltaTime);
@@ -63,24 +61,28 @@ public class PlayerController : MonoBehaviour
         cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
 
+    void UpdatePlayerRotationWithKeys()
+    {
+        float rotateInput = 0f;
+        float keySensitivity = 90f;
+        isRotating = false;
+
+        if (Input.GetKey(KeyCode.A))
+        {
+            rotateInput = -1f;
+            isRotating = true;
+        }
+        else if (Input.GetKey(KeyCode.D))
+        {
+            rotateInput = 1f;
+            isRotating = true;
+        }
+
+        transform.Rotate(Vector3.up * rotateInput * keySensitivity * Time.deltaTime);
+    }
+
     public void LockCamera(bool lockCamera)
     {
-        canLook = !lockCamera; // Active ou désactive la rotation de la caméra
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-        }
-    }
-
-    private void OnCollisionExit(Collision collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = false;
-        }
+        canLook = !lockCamera;
     }
 }

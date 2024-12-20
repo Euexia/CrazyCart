@@ -40,6 +40,12 @@ public class RandomFurnitureUI : MonoBehaviour
         // Créer les boutons pour chaque étagère
         CreateShelfButtons();
 
+        // Désactiver le prefab des boutons d'étagère après usage
+        if (shelfButtonPrefab != null)
+        {
+            shelfButtonPrefab.SetActive(false);
+        }
+
         // Configurer les boutons de main
         leftHandButton.SetActive(false);
         rightHandButton.SetActive(false);
@@ -75,19 +81,15 @@ public class RandomFurnitureUI : MonoBehaviour
         }
     }
 
-    // Fonction pour récupérer des ingrédients aléatoires (avec répétitions possibles)
     List<Ingredient> GetRandomIngredients(int count)
     {
         List<Ingredient> randomIngredients = new List<Ingredient>();
-
-        // On ne modifie plus la liste temporaire d'ingrédients
         List<Ingredient> tempIngredients = new List<Ingredient>(allIngredients);
 
         for (int i = 0; i < count; i++)
         {
             if (tempIngredients.Count > 0)
             {
-                // Choisir un ingrédient au hasard sans l'enlever de la liste
                 int randomIndex = Random.Range(0, tempIngredients.Count);
                 randomIngredients.Add(tempIngredients[randomIndex]);
             }
@@ -111,13 +113,11 @@ public class RandomFurnitureUI : MonoBehaviour
 
     void ShowShelfItems(Furniture.Shelf shelf)
     {
-        // Nettoyer les éléments précédemment affichés dans la grille
         foreach (Transform child in gridLayout.transform)
         {
             Destroy(child.gameObject);
         }
 
-        // Ajouter les ingrédients de l'étagère à la grille
         foreach (var ingredient in shelf.ingredients)
         {
             if (ingredient != null)
@@ -128,16 +128,51 @@ public class RandomFurnitureUI : MonoBehaviour
                 Image imageComponent = itemUI.AddComponent<Image>();
                 imageComponent.sprite = ingredient.ingredientSprite;
 
-                // Ajouter un EventTrigger pour gérer les clics
+                // Ajouter un EventTrigger pour gérer les interactions
                 EventTrigger eventTrigger = itemUI.AddComponent<EventTrigger>();
+
+                // Événement PointerClick (clic)
                 EventTrigger.Entry entryPointerClick = new EventTrigger.Entry
                 {
                     eventID = EventTriggerType.PointerClick
                 };
                 entryPointerClick.callback.AddListener((data) => OnIngredientClick(ingredient));
-
                 eventTrigger.triggers.Add(entryPointerClick);
+
+                // Événement PointerEnter (survol)
+                EventTrigger.Entry entryPointerEnter = new EventTrigger.Entry
+                {
+                    eventID = EventTriggerType.PointerEnter
+                };
+                entryPointerEnter.callback.AddListener((data) => OnPointerEnter(ingredient));
+                eventTrigger.triggers.Add(entryPointerEnter);
+
+                // Événement PointerExit (quitte le survol)
+                EventTrigger.Entry entryPointerExit = new EventTrigger.Entry
+                {
+                    eventID = EventTriggerType.PointerExit
+                };
+                entryPointerExit.callback.AddListener((data) => OnPointerExit());
+                eventTrigger.triggers.Add(entryPointerExit);
             }
+        }
+    }
+
+    void OnPointerEnter(Ingredient ingredient)
+    {
+        if (ingredient != null && itemDescriptionText != null)
+        {
+            itemDescriptionText.text = ingredient.description;
+            Debug.Log($"Description affichée : {ingredient.description}");
+        }
+    }
+
+    void OnPointerExit()
+    {
+        if (itemDescriptionText != null)
+        {
+            itemDescriptionText.text = "";
+            Debug.Log("Description effacée.");
         }
     }
 
@@ -155,14 +190,11 @@ public class RandomFurnitureUI : MonoBehaviour
     {
         if (currentIngredient != null)
         {
-            // Assigner l'ingrédient à une main
             pickUpObjectScript.AssignIngredientToHand(currentIngredient, hand);
 
-            // Cacher les boutons de sélection de main
             leftHandButton.SetActive(false);
             rightHandButton.SetActive(false);
 
-            // Supprimer visuellement l'ingrédient de l'interface
             RemoveIngredientFromShelf(currentIngredient);
             currentIngredient = null;
         }
@@ -179,7 +211,6 @@ public class RandomFurnitureUI : MonoBehaviour
             }
         }
 
-        // Retirer l'ingrédient visuellement de l'interface
         foreach (Transform child in gridLayout.transform)
         {
             Image imageComponent = child.GetComponent<Image>();
@@ -194,21 +225,18 @@ public class RandomFurnitureUI : MonoBehaviour
         Debug.LogWarning("Impossible de trouver l'ingrédient à supprimer dans l'interface.");
     }
 
-    // Modifier la fonction pour fermer uniquement le Canvas
     void CloseCanvas()
     {
-        // Désactiver le Canvas
         if (randomFurnitureCanvas != null)
         {
-            randomFurnitureCanvas.gameObject.SetActive(false); // Désactive seulement le Canvas
+            randomFurnitureCanvas.gameObject.SetActive(false);
         }
 
-        // Désactiver tous les boutons d'étagère
         foreach (var button in shelfButtons)
         {
-            Destroy(button);  // Détruire chaque bouton d'étagère
+            Destroy(button);
         }
-        shelfButtons.Clear();  // Vider la liste des boutons
+        shelfButtons.Clear();
 
         Time.timeScale = 1;
 
